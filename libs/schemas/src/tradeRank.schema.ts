@@ -42,6 +42,24 @@ export class TradeRank {
   priceDiffRateRank: number
 
   @Prop()
+  prevVolumeDiffRateRank: number
+
+  @Prop()
+  prevDayVolumeDiffRateRank: number
+
+  @Prop()
+  prevPriceDiffRank: number
+
+  @Prop()
+  prevDayPriceDiffRank: number
+
+  @Prop()
+  prevPriceDiffRateRank: number
+
+  @Prop()
+  prevDayPriceDiffRateRank: number
+
+  @Prop()
   datetime: Date
 
   @Prop()

@@ -27,7 +27,7 @@ export interface ResponseType {
 }
 
 interface ObjType {
-  market: string
+  market?: string
   volumeSum1H?: number
   priceSum1H?: number
   volumeDiff1H?: number
@@ -64,5 +64,5 @@ interface ObjType {
   priceDiff24H?: number
   volumeDiffRate24H?: number
   priceDiffRate24H?: number
-  datetime: Date
+  datetime?: Date
 }
