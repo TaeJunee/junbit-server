@@ -46,7 +46,6 @@ export class MinuteCandleService {
                 })
                 .then(async (res) => {
                   if (res) {
-                    console.log('있어', res.candle_date_time_utc)
                   } else {
                     const tokenCandle = new this.minuteCandleModel({
                       market: response.market,
@@ -87,7 +86,7 @@ export class MinuteCandleService {
     })
 
     await this.tradeRankModel.deleteMany({
-      candle_date_time_utc: { $lt: ISOBaseTime },
+      datetime: { $lt: ISOBaseTime },
     })
 
     console.log('Done')
