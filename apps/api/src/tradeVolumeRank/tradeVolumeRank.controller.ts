@@ -8,10 +8,10 @@ export class TradeVolumeRankController {
   ) {}
 
   @Get('trade-volume-rank')
-  findAllByDatetime(
+  findRankByDatetime(
     @Query('unit') hours: HoursType,
     @Query('datetime') datetime: Date,
   ) {
-    return this.tradeVolumeRankService.findAllByDatetime(datetime, hours)
+    return this.tradeVolumeRankService.findRankByDatetime(hours, datetime)
   }
 }

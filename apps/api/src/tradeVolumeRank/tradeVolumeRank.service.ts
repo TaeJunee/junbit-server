@@ -1,34 +1,34 @@
 import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
-import { MinuteCandleService } from '../minuteCandle/minuteCandle.service'
-import { TokenTradeVolumeRank } from '@lib/entities/token/tradeVolumeRank.entity'
-import { GetTradeVolumeRankDto } from './dtos/get-trade-volume-rank-dto'
+import { InjectModel } from '@nestjs/mongoose'
+import { Model } from 'mongoose'
+import { TradeRank, TradeRankDocument } from '@lib/schemas/tradeRank.schema'
 
 @Injectable()
 export class TradeVolumeRankService {
   constructor(
-    @InjectRepository(TokenTradeVolumeRank)
-    private readonly tokenTradeVolumeRankRepsitory: Repository<TokenTradeVolumeRank>,
+    @InjectModel(TradeRank.name)
+    private readonly tradeRankModel: Model<TradeRankDocument>,
   ) {}
 
-  async findAllByDatetime(datetime: Date, hours: HoursType) {
-    this.tokenTradeVolumeRankRepsitory.metadata.tablePath = `trade_volume_rank_${hours}h`
-
-    const data: GetTradeVolumeRankDto[] =
-      await this.tokenTradeVolumeRankRepsitory.find({
-        select: {
-          diffRateRank: true,
-          prevDiffRateRank: true,
-          prevDayDiffRateRank: true,
-          market: true,
-          volumeDiff: true,
-          volumeDiffRate: true,
-          datetime: true,
+  async findRankByDatetime(hours: HoursType, datetime: Date) {
+    const data = await this.tradeRankModel
+      .find(
+        { unit: hours, datetime },
+        {
+          _id: 0,
+          unit: 1,
+          market: 1,
+          datetime: 1,
+          volumeDiff: 1,
+          volumeDiffRate: 1,
+          volumeDiffRateRank: 1,
+          prevVolumeDiffRank: 1,
+          prevVolumeDiffRateRank: 1,
+          prevDayVolumeDiffRank: 1,
+          prevDayVolumeDiffRateRank: 1,
         },
-        where: { datetime: datetime },
-        order: { diffRateRank: 'asc' },
-      })
+      )
+      .exec()
 
     return { payload: data }
   }

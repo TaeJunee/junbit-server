@@ -1,11 +1,15 @@
 import { Module } from '@nestjs/common'
-import { TypeOrmModule } from '@nestjs/typeorm'
+import { MongooseModule } from '@nestjs/mongoose'
+import { TradeRank, TradeRankSchema } from '@lib/schemas/tradeRank.schema'
 import { TradePriceRankController } from './tradePriceRank.controller'
-import { TokenTradePriceRank } from '@lib/entities/token/tradePriceRank.entity'
 import { TradePriceRankService } from './tradePriceRank.service'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TokenTradePriceRank])],
+  imports: [
+    MongooseModule.forFeature([
+      { name: TradeRank.name, schema: TradeRankSchema },
+    ]),
+  ],
   controllers: [TradePriceRankController],
   providers: [TradePriceRankService],
 })
