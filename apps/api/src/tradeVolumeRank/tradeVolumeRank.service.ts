@@ -5,14 +5,12 @@ import { MinuteCandleService } from '../minuteCandle/minuteCandle.service'
 import { TokenTradeVolumeRank } from '@lib/entities/token/tradeVolumeRank.entity'
 import { GetTradeVolumeRankDto } from './dtos/get-trade-volume-rank-dto'
 
-
 @Injectable()
 export class TradeVolumeRankService {
   constructor(
     @InjectRepository(TokenTradeVolumeRank)
     private readonly tokenTradeVolumeRankRepsitory: Repository<TokenTradeVolumeRank>,
   ) {}
-
 
   async findAllByDatetime(datetime: Date, hours: HoursType) {
     this.tokenTradeVolumeRankRepsitory.metadata.tablePath = `trade_volume_rank_${hours}h`

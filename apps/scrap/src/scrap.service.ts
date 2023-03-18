@@ -10,7 +10,6 @@ export class ScrapService implements OnApplicationBootstrap {
     private readonly minuteCandleService: MinuteCandleService,
   ) {}
   async onApplicationBootstrap() {
-
     const unitList: HoursType[] = [1, 2, 4, 8, 12, 24]
     makeInterval(async () => {
       const date = new Date()
@@ -21,7 +20,6 @@ export class ScrapService implements OnApplicationBootstrap {
         date.getHours() - 1,
       ).toISOString()
       const ISOBaseTime = new Date(baseTime)
-      await this.tickerService.create()
       await this.minuteCandleService.create(60, 3)
       for await (let unit of unitList) {
         await this.minuteCandleService.saveRankData(unit, ISOBaseTime)

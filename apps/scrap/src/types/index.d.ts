@@ -66,4 +66,3 @@ interface ObjType {
   priceDiffRate24H?: number
   datetime: Date
 }
-

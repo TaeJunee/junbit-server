@@ -14,5 +14,4 @@ export class MinuteCandleService {
     @InjectModel(MinuteCandle.name)
     private readonly minuteCandleModel: Model<MinuteCandleDocument>,
   ) {}
-
 }

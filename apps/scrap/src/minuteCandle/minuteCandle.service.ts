@@ -56,7 +56,7 @@ export class MinuteCandleService {
                       timestamp: response.timestamp,
                       candle_acc_trade_price: response.candle_acc_trade_price,
                       candle_acc_trade_volume: response.candle_acc_trade_volume,
-                      unit: response.unit
+                      unit: response.unit,
                     })
                     await tokenCandle.save()
                   }
@@ -106,7 +106,6 @@ export class MinuteCandleService {
     hours: HoursType,
     datetime: Date,
   ) {
-
     return await this.minuteCandleModel
       .find(
         {
@@ -123,33 +122,44 @@ export class MinuteCandleService {
     let array: ObjType[] = []
 
     for await (let value of krwTokens) {
-      const data = await this.findByMarketAndDatetime(value.market, hours, datetime)
-      let obj: ObjType = { market: data[0].market, datetime: data[0].candle_date_time_utc }
-      
+      const data = await this.findByMarketAndDatetime(
+        value.market,
+        hours,
+        datetime,
+      )
+      let obj: ObjType = {
+        market: data[0].market,
+        datetime: data[0].candle_date_time_utc,
+      }
+
       const volumeSum = data
         .slice(0, data.length / 2)
-        .reduce((accumulator, object) =>
-          accumulator + object.candle_acc_trade_volume, 0
+        .reduce(
+          (accumulator, object) => accumulator + object.candle_acc_trade_volume,
+          0,
         )
       const prevVolumeSum = data
         .slice(data.length / 2)
-        .reduce((accumulator, object) =>
-          accumulator + object.candle_acc_trade_volume, 0
+        .reduce(
+          (accumulator, object) => accumulator + object.candle_acc_trade_volume,
+          0,
         )
       const volumeDiff = volumeSum - prevVolumeSum
 
       const priceSum = data
         .slice(0, data.length / 2)
-        .reduce((accumulator, object) =>
-          accumulator + object.candle_acc_trade_price, 0
+        .reduce(
+          (accumulator, object) => accumulator + object.candle_acc_trade_price,
+          0,
         )
       const prevPriceSum = data
         .slice(data.length / 2)
-        .reduce((accumulator, object) =>
-          accumulator + object.candle_acc_trade_price, 0
+        .reduce(
+          (accumulator, object) => accumulator + object.candle_acc_trade_price,
+          0,
         )
       const priceDiff = priceSum - prevPriceSum
-        
+
       obj[`volumeSum${hours}H`] = volumeSum
       obj[`volumeDiff${hours}H`] = volumeDiff
       obj[`volumeDiffRate${hours}H`] = volumeDiff / prevVolumeSum
@@ -171,46 +181,53 @@ export class MinuteCandleService {
     const ISOPrevTime = new Date(prevTime)
     const prevDay = new Date(year, month, date - 1, hour).toISOString()
     const ISOPrevDay = new Date(prevDay)
-    
-    const exist = await this.tradeRankModel
-      .find({
-        datetime: ISOPrevTime
-      })
-      .exec()
-    const data: ObjType[] =
-      await this.calculate(hours, ISONewDatetime)
+
+    const data: ObjType[] = await this.calculate(hours, ISONewDatetime)
 
     let array = []
     for await (let value of krwTokens) {
-      let obj = {}
       const exist = await this.tradeRankModel
-      .find({
-        market: value.market,
-        datetime: ISOPrevTime
-      })
-      .exec()
+        .findOne({
+          market: value.market,
+          datetime: ISONewDatetime,
+        })
+        .exec()
 
-      if (exist) {}
-      else {
+      if (exist) {
+      } else {
+        let obj = {}
         const prevData = await this.tradeRankModel
           .findOne({
-            market: value.market, datetime: ISOPrevTime
+            market: value.market,
+            datetime: ISOPrevTime,
           })
           .exec()
 
         const prevDayData = await this.tradeRankModel
           .findOne({
-            market: value.market, datetime: ISOPrevDay
+            market: value.market,
+            datetime: ISOPrevDay,
           })
           .exec()
-        
-        const sortedDataByVolumeSum = cloneDeep(data).sort((a, b) => b[`volumeSum${hours}H`] - a[`volumeSum${hours}H`])
-        const sortedDataByVolumeDiffRate = cloneDeep(data).sort((a, b) => b[`volumeDiffRate${hours}H`] - a[`volumeDiffRate${hours}H`])
-        const sortedDataByPriceSum = cloneDeep(data).sort((a, b) => b[`priceSum${hours}H`] - a[`priceSum${hours}H`])
-        const sortedDataByPriceDiff = cloneDeep(data).sort((a, b) => b[`priceDiff${hours}H`] - a[`priceDiff${hours}H`])
-        const sortedDataByPriceDiffRate = cloneDeep(data).sort((a, b) => b[`priceDiffRate${hours}H`] - a[`priceDiffRate${hours}H`])
-        const indexedData = data[data.findIndex(item => item.market = value.market)]
-        
+
+        const sortedDataByVolumeSum = cloneDeep(data).sort(
+          (a, b) => b[`volumeSum${hours}H`] - a[`volumeSum${hours}H`],
+        )
+        const sortedDataByVolumeDiffRate = cloneDeep(data).sort(
+          (a, b) => b[`volumeDiffRate${hours}H`] - a[`volumeDiffRate${hours}H`],
+        )
+        const sortedDataByPriceSum = cloneDeep(data).sort(
+          (a, b) => b[`priceSum${hours}H`] - a[`priceSum${hours}H`],
+        )
+        const sortedDataByPriceDiff = cloneDeep(data).sort(
+          (a, b) => b[`priceDiff${hours}H`] - a[`priceDiff${hours}H`],
+        )
+        const sortedDataByPriceDiffRate = cloneDeep(data).sort(
+          (a, b) => b[`priceDiffRate${hours}H`] - a[`priceDiffRate${hours}H`],
+        )
+        const indexedData =
+          data[data.findIndex((item) => (item.market = value.market))]
+
         obj['market'] = value.market
         obj['volumeSum'] = indexedData[`volumeSum${hours}H`]
         obj['priceSum'] = indexedData[`priceSum${hours}H`]
@@ -218,17 +235,42 @@ export class MinuteCandleService {
         obj['priceDiff'] = indexedData[`priceDiff${hours}H`]
         obj['volumeDiffRate'] = indexedData[`volumeDiffRate${hours}H`]
         obj['priceDiffRate'] = indexedData[`priceDiffRate${hours}H`]
-        obj['volumeSumRank'] = sortedDataByVolumeSum.findIndex(item => item.market === value.market) + 1
-        obj['volumeDiffRateRank'] = sortedDataByVolumeDiffRate.findIndex(item => item.market === value.market) + 1
-        obj['priceSumRank'] = sortedDataByPriceSum.findIndex(item => item.market === value.market) + 1
-        obj['priceDiffRank'] = sortedDataByPriceDiff.findIndex(item => item.market === value.market) + 1
-        obj['priceDiffRateRank'] = sortedDataByPriceDiffRate.findIndex(item => item.market === value.market) + 1
-        obj['prevVolumeDiffRateRank'] = prevData ? prevData.volumeDiffRateRank : null
-        obj['prevDayVolumeDiffRateRank'] = prevDayData ? prevDayData.volumeDiffRateRank : null
+        obj['volumeSumRank'] =
+          sortedDataByVolumeSum.findIndex(
+            (item) => item.market === value.market,
+          ) + 1
+        obj['volumeDiffRateRank'] =
+          sortedDataByVolumeDiffRate.findIndex(
+            (item) => item.market === value.market,
+          ) + 1
+        obj['priceSumRank'] =
+          sortedDataByPriceSum.findIndex(
+            (item) => item.market === value.market,
+          ) + 1
+        obj['priceDiffRank'] =
+          sortedDataByPriceDiff.findIndex(
+            (item) => item.market === value.market,
+          ) + 1
+        obj['priceDiffRateRank'] =
+          sortedDataByPriceDiffRate.findIndex(
+            (item) => item.market === value.market,
+          ) + 1
+        obj['prevVolumeDiffRateRank'] = prevData
+          ? prevData.volumeDiffRateRank
+          : null
+        obj['prevDayVolumeDiffRateRank'] = prevDayData
+          ? prevDayData.volumeDiffRateRank
+          : null
         obj['prevPriceDiffRank'] = prevData ? prevData.priceDiffRank : null
-        obj['prevDayPriceDiffRank'] = prevDayData ? prevDayData.priceDiffRank : null
-        obj['prevPriceDiffRateRank'] = prevData ? prevData.priceDiffRateRank : null
-        obj['prevDayPriceDiffRateRank'] = prevDayData ? prevDayData.priceDiffRateRank : null
+        obj['prevDayPriceDiffRank'] = prevDayData
+          ? prevDayData.priceDiffRank
+          : null
+        obj['prevPriceDiffRateRank'] = prevData
+          ? prevData.priceDiffRateRank
+          : null
+        obj['prevDayPriceDiffRateRank'] = prevDayData
+          ? prevDayData.priceDiffRateRank
+          : null
         obj['unit'] = hours
         obj['datetime'] = ISONewDatetime
 
@@ -236,7 +278,7 @@ export class MinuteCandleService {
       }
       try {
         await this.tradeRankModel.insertMany(array)
-      } catch(e) {
+      } catch (e) {
         throw new Error(e)
       }
     }

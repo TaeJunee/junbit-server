@@ -18,11 +18,6 @@ import { Upbit } from '@lib/utils/upbit'
     MinuteCandleModule,
     TickerModule,
   ],
-  providers: [
-    ScrapService,
-    TickerService,
-    MinuteCandleService,
-    Upbit,
-  ],
+  providers: [ScrapService, TickerService, MinuteCandleService, Upbit],
 })
 export class ScrapModule {}
