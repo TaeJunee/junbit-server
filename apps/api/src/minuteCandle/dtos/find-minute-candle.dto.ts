@@ -1,4 +1,4 @@
-import { MinutesType } from "apps/scrap/src/types"
+import { MinutesType } from 'apps/scrap/src/types'
 
 export class FindAll {
   market: string

@@ -10,7 +10,6 @@ export class TradePriceRankController {
     @Query('unit') hours: HoursType,
     @Query('datetime') datetime: Date,
   ) {
-
     return this.tradePriceRankService.findAllByDatetime(hours, datetime)
   }
 }

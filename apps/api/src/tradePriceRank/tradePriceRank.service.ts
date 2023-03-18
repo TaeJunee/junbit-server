@@ -9,15 +9,9 @@ import { convertDatetime } from '@lib/utils/datetime'
 
 @Injectable()
 export class TradePriceRankService {
-  constructor(
-    private readonly minuteCandleService: MinuteCandleService,
-  ) {}
-
+  constructor(private readonly minuteCandleService: MinuteCandleService) {}
 
   async findAllByDatetime(hours: HoursType, datetime: Date) {
-
-
-
     return
   }
 }

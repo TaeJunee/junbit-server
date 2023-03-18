@@ -1,4 +1,4 @@
-import { MinutesType } from "../../types"
+import { MinutesType } from '../../types'
 
 export class CreateMinuteCandleDto {
   market: string
