@@ -24,9 +24,7 @@ const common_1 = __webpack_require__(3);
 const config_1 = __webpack_require__(4);
 const database_module_1 = __webpack_require__(5);
 const minuteCandle_module_1 = __webpack_require__(7);
-const ticker_module_1 = __webpack_require__(18);
-const scrap_service_1 = __webpack_require__(21);
-const ticker_service_1 = __webpack_require__(19);
+const scrap_service_1 = __webpack_require__(18);
 const minuteCandle_service_1 = __webpack_require__(8);
 const upbit_1 = __webpack_require__(11);
 let ScrapModule = class ScrapModule {
@@ -40,14 +38,8 @@ ScrapModule = __decorate([
             }),
             database_module_1.DatabaseModule,
             minuteCandle_module_1.MinuteCandleModule,
-            ticker_module_1.TickerModule,
         ],
-        providers: [
-            scrap_service_1.ScrapService,
-            ticker_service_1.TickerService,
-            minuteCandle_service_1.MinuteCandleService,
-            upbit_1.Upbit,
-        ],
+        providers: [scrap_service_1.ScrapService, minuteCandle_service_1.MinuteCandleService, upbit_1.Upbit],
     })
 ], ScrapModule);
 exports.ScrapModule = ScrapModule;
@@ -232,7 +224,7 @@ let MinuteCandleService = class MinuteCandleService {
                                                     timestamp: response.timestamp,
                                                     candle_acc_trade_price: response.candle_acc_trade_price,
                                                     candle_acc_trade_volume: response.candle_acc_trade_volume,
-                                                    unit: response.unit
+                                                    unit: response.unit,
                                                 });
                                                 await tokenCandle.save();
                                             }
@@ -274,32 +266,31 @@ let MinuteCandleService = class MinuteCandleService {
         }
         console.log('DONE');
     }
-    async delete(unit) {
+    async delete(datetime) {
         console.log('Deleteing MinuteCandles');
-        for (let i = 1; i < tokens_1.krwTokens.length + 1; i++) {
-            const start = Date.now();
-            const utcDate = await this.upbit.getMinuteCandle(unit, tokens_1.krwTokens[i - 1].market, 1);
-            const date = new Date(`${utcDate[0].candle_date_time_utc}.000Z`);
-            const newDate = new Date(date.setDate(date.getDate() - 14));
-            await this.minuteCandleModel.deleteMany({
-                market: tokens_1.krwTokens[i - 1].market,
-                candle_date_time_utc: { $lt: newDate },
-            });
-            const now = Date.now();
-            if (i % 10 == 0 && now - start < 1000) {
-                await (0, sleep_1.sleep)(1100 - (now - start));
-            }
-        }
+        const { year, month, date, hour } = (0, datetime_1.convertDatetime)(datetime);
+        const baseTime = new Date(year, month, date - 14, hour).toISOString();
+        const ISOBaseTime = new Date(baseTime);
+        await this.minuteCandleModel.deleteMany({
+            candle_date_time_utc: { $lt: ISOBaseTime },
+        });
+        await this.tradeRankModel.deleteMany({
+            candle_date_time_utc: { $lt: ISOBaseTime },
+        });
         console.log('Done');
     }
     async findByMarketAndDatetime(market, hours, datetime) {
-        return await this.minuteCandleModel
+        const result = await this.minuteCandleModel
             .find({
             market,
             candle_date_time_utc: { $lte: datetime },
         }, { _id: 0, __v: 0 })
             .sort({ candle_date_time_utc: -1 })
             .limit(hours * 2);
+        if (result.length < hours * 2) {
+            return;
+        }
+        return result;
     }
     async calculate(hours, datetime) {
         var _a, e_3, _b, _c;
@@ -311,7 +302,13 @@ let MinuteCandleService = class MinuteCandleService {
                 try {
                     let value = _c;
                     const data = await this.findByMarketAndDatetime(value.market, hours, datetime);
-                    let obj = { market: data[0].market, datetime: data[0].candle_date_time_utc };
+                    if (!data) {
+                        return;
+                    }
+                    let obj = {
+                        market: data[0].market,
+                        datetime: data[0].candle_date_time_utc,
+                    };
                     const volumeSum = data
                         .slice(0, data.length / 2)
                         .reduce((accumulator, object) => accumulator + object.candle_acc_trade_volume, 0);
@@ -350,6 +347,7 @@ let MinuteCandleService = class MinuteCandleService {
     }
     async saveRankData(hours, datetime) {
         var _a, e_4, _b, _c;
+        console.log("SAVING RANK DATA UNIT::: ", hours, "DATETIME::: ", datetime);
         const { year, month, date, hour } = (0, datetime_1.convertDatetime)(datetime);
         const newDatetime = new Date(year, month, date, hour).toISOString();
         const ISONewDatetime = new Date(newDatetime);
@@ -357,71 +355,79 @@ let MinuteCandleService = class MinuteCandleService {
         const ISOPrevTime = new Date(prevTime);
         const prevDay = new Date(year, month, date - 1, hour).toISOString();
         const ISOPrevDay = new Date(prevDay);
-        const exist = await this.tradeRankModel
-            .find({
-            datetime: ISOPrevTime
-        })
-            .exec();
         const data = await this.calculate(hours, ISONewDatetime);
+        if (!data) {
+            return;
+        }
         let array = [];
+        const sortedDataByVolumeSum = (0, lodash_1.cloneDeep)(data).sort((a, b) => b[`volumeSum${hours}H`] - a[`volumeSum${hours}H`]);
+        const sortedDataByVolumeDiffRate = (0, lodash_1.cloneDeep)(data).sort((a, b) => b[`volumeDiffRate${hours}H`] - a[`volumeDiffRate${hours}H`]);
+        const sortedDataByPriceSum = (0, lodash_1.cloneDeep)(data).sort((a, b) => b[`priceSum${hours}H`] - a[`priceSum${hours}H`]);
+        const sortedDataByPriceDiff = (0, lodash_1.cloneDeep)(data).sort((a, b) => b[`priceDiff${hours}H`] - a[`priceDiff${hours}H`]);
+        const sortedDataByPriceDiffRate = (0, lodash_1.cloneDeep)(data).sort((a, b) => b[`priceDiffRate${hours}H`] - a[`priceDiffRate${hours}H`]);
         try {
-            for (var _d = true, krwTokens_3 = __asyncValues(tokens_1.krwTokens), krwTokens_3_1; krwTokens_3_1 = await krwTokens_3.next(), _a = krwTokens_3_1.done, !_a;) {
-                _c = krwTokens_3_1.value;
+            for (var _d = true, data_1 = __asyncValues(data), data_1_1; data_1_1 = await data_1.next(), _a = data_1_1.done, !_a;) {
+                _c = data_1_1.value;
                 _d = false;
                 try {
-                    let value = _c;
-                    let obj = {};
+                    let item = _c;
                     const exist = await this.tradeRankModel
-                        .find({
-                        market: value.market,
-                        datetime: ISOPrevTime
-                    })
-                        .exec();
+                        .findOne({
+                        market: item.market,
+                        datetime: item.datetime,
+                        unit: hours
+                    });
                     if (exist) { }
                     else {
+                        let obj = {};
                         const prevData = await this.tradeRankModel
                             .findOne({
-                            market: value.market, datetime: ISOPrevTime
-                        })
-                            .exec();
+                            market: item.market,
+                            datetime: ISOPrevTime,
+                            unit: hours
+                        });
                         const prevDayData = await this.tradeRankModel
                             .findOne({
-                            market: value.market, datetime: ISOPrevDay
-                        })
-                            .exec();
-                        const sortedDataByVolumeSum = (0, lodash_1.cloneDeep)(data).sort((a, b) => b[`volumeSum${hours}H`] - a[`volumeSum${hours}H`]);
-                        const sortedDataByVolumeDiffRate = (0, lodash_1.cloneDeep)(data).sort((a, b) => b[`volumeDiffRate${hours}H`] - a[`volumeDiffRate${hours}H`]);
-                        const sortedDataByPriceSum = (0, lodash_1.cloneDeep)(data).sort((a, b) => b[`priceSum${hours}H`] - a[`priceSum${hours}H`]);
-                        const sortedDataByPriceDiff = (0, lodash_1.cloneDeep)(data).sort((a, b) => b[`priceDiff${hours}H`] - a[`priceDiff${hours}H`]);
-                        const sortedDataByPriceDiffRate = (0, lodash_1.cloneDeep)(data).sort((a, b) => b[`priceDiffRate${hours}H`] - a[`priceDiffRate${hours}H`]);
-                        const indexedData = data[data.findIndex(item => item.market = value.market)];
-                        obj['market'] = value.market;
-                        obj['volumeSum'] = indexedData[`volumeSum${hours}H`];
-                        obj['priceSum'] = indexedData[`priceSum${hours}H`];
-                        obj['volumeDiff'] = indexedData[`volumeDiff${hours}H`];
-                        obj['priceDiff'] = indexedData[`priceDiff${hours}H`];
-                        obj['volumeDiffRate'] = indexedData[`volumeDiffRate${hours}H`];
-                        obj['priceDiffRate'] = indexedData[`priceDiffRate${hours}H`];
-                        obj['volumeSumRank'] = sortedDataByVolumeSum.findIndex(item => item.market === value.market) + 1;
-                        obj['volumeDiffRateRank'] = sortedDataByVolumeDiffRate.findIndex(item => item.market === value.market) + 1;
-                        obj['priceSumRank'] = sortedDataByPriceSum.findIndex(item => item.market === value.market) + 1;
-                        obj['priceDiffRank'] = sortedDataByPriceDiff.findIndex(item => item.market === value.market) + 1;
-                        obj['priceDiffRateRank'] = sortedDataByPriceDiffRate.findIndex(item => item.market === value.market) + 1;
-                        obj['prevVolumeDiffRateRank'] = prevData ? prevData.volumeDiffRateRank : null;
-                        obj['prevDayVolumeDiffRateRank'] = prevDayData ? prevDayData.volumeDiffRateRank : null;
+                            market: item.market,
+                            datetime: ISOPrevDay,
+                            unit: hours
+                        });
+                        obj['market'] = item.market;
+                        obj['volumeSum'] = item[`volumeSum${hours}H`];
+                        obj['priceSum'] = item[`priceSum${hours}H`];
+                        obj['volumeDiff'] = item[`volumeDiff${hours}H`];
+                        obj['priceDiff'] = item[`priceDiff${hours}H`];
+                        obj['volumeDiffRate'] = item[`volumeDiffRate${hours}H`];
+                        obj['priceDiffRate'] = item[`priceDiffRate${hours}H`];
+                        obj['volumeSumRank'] =
+                            sortedDataByVolumeSum.findIndex((value) => value.market === item.market) + 1;
+                        obj['volumeDiffRateRank'] =
+                            sortedDataByVolumeDiffRate.findIndex((value) => value.market === item.market) + 1;
+                        obj['priceSumRank'] =
+                            sortedDataByPriceSum.findIndex((value) => value.market === item.market) + 1;
+                        obj['priceDiffRank'] =
+                            sortedDataByPriceDiff.findIndex((value) => value.market === item.market) + 1;
+                        obj['priceDiffRateRank'] =
+                            sortedDataByPriceDiffRate.findIndex((value) => value.market === item.market) + 1;
+                        obj['prevVolumeDiffRateRank'] = prevData
+                            ? prevData.volumeDiffRateRank
+                            : null;
+                        obj['prevDayVolumeDiffRateRank'] = prevDayData
+                            ? prevDayData.volumeDiffRateRank
+                            : null;
                         obj['prevPriceDiffRank'] = prevData ? prevData.priceDiffRank : null;
-                        obj['prevDayPriceDiffRank'] = prevDayData ? prevDayData.priceDiffRank : null;
-                        obj['prevPriceDiffRateRank'] = prevData ? prevData.priceDiffRateRank : null;
-                        obj['prevDayPriceDiffRateRank'] = prevDayData ? prevDayData.priceDiffRateRank : null;
+                        obj['prevDayPriceDiffRank'] = prevDayData
+                            ? prevDayData.priceDiffRank
+                            : null;
+                        obj['prevPriceDiffRateRank'] = prevData
+                            ? prevData.priceDiffRateRank
+                            : null;
+                        obj['prevDayPriceDiffRateRank'] = prevDayData
+                            ? prevDayData.priceDiffRateRank
+                            : null;
                         obj['unit'] = hours;
-                        obj['datetime'] = ISONewDatetime;
+                        obj['datetime'] = item.datetime;
                         array.push(obj);
-                    }
-                    try {
-                        await this.tradeRankModel.insertMany(array);
-                    }
-                    catch (e) {
-                        throw new Error(e);
                     }
                 }
                 finally {
@@ -432,9 +438,15 @@ let MinuteCandleService = class MinuteCandleService {
         catch (e_4_1) { e_4 = { error: e_4_1 }; }
         finally {
             try {
-                if (!_d && !_a && (_b = krwTokens_3.return)) await _b.call(krwTokens_3);
+                if (!_d && !_a && (_b = data_1.return)) await _b.call(data_1);
             }
             finally { if (e_4) throw e_4.error; }
+        }
+        try {
+            await this.tradeRankModel.insertMany(array);
+        }
+        catch (e) {
+            throw new Error(e);
         }
     }
 };
@@ -1347,6 +1359,30 @@ __decorate([
 ], TradeRank.prototype, "priceDiffRateRank", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "prevVolumeDiffRateRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "prevDayVolumeDiffRateRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "prevPriceDiffRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "prevDayPriceDiffRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "prevPriceDiffRateRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "prevDayPriceDiffRateRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
     __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
 ], TradeRank.prototype, "datetime", void 0);
 __decorate([
@@ -1377,143 +1413,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TickerModule = void 0;
-const common_1 = __webpack_require__(3);
-const mongoose_1 = __webpack_require__(6);
-const ticker_service_1 = __webpack_require__(19);
-const ticker_schema_1 = __webpack_require__(20);
-const upbit_1 = __webpack_require__(11);
-let TickerModule = class TickerModule {
-};
-TickerModule = __decorate([
-    (0, common_1.Module)({
-        imports: [
-            mongoose_1.MongooseModule.forFeature([{ name: ticker_schema_1.Ticker.name, schema: ticker_schema_1.TickerSchema }]),
-        ],
-        providers: [ticker_service_1.TickerService, upbit_1.Upbit],
-        exports: [ticker_service_1.TickerService, mongoose_1.MongooseModule],
-    })
-], TickerModule);
-exports.TickerModule = TickerModule;
-
-
-/***/ }),
-/* 19 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-var _a, _b;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TickerService = void 0;
-const common_1 = __webpack_require__(3);
-const mongoose_1 = __webpack_require__(6);
-const mongoose_2 = __webpack_require__(9);
-const ticker_schema_1 = __webpack_require__(20);
-const upbit_1 = __webpack_require__(11);
-const tokens_1 = __webpack_require__(14);
-let TickerService = class TickerService {
-    constructor(tickerModel, upbit) {
-        this.tickerModel = tickerModel;
-        this.upbit = upbit;
-    }
-    async create() {
-        const responses = await this.upbit.getTicker(tokens_1.markets.toString());
-        const date = new Date();
-        const currentTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours());
-        console.log('Saving Tickers...');
-        for (let item of responses) {
-            const ticker = new this.tickerModel();
-            ticker.market = item.market;
-            ticker.acc_trade_price_24h = item.acc_trade_price_24h;
-            ticker.acc_trade_volume_24h = item.acc_trade_volume_24h;
-            ticker.created_at = currentTime;
-            await ticker.save();
-        }
-        console.log('Done');
-    }
-    async delete() {
-        const time = new Date('2023-02-14T07:00:00.000+00:00');
-        console.log(time);
-        const result = await this.tickerModel.find({ created_at: time });
-        console.log(result);
-    }
-    async find() { }
-};
-TickerService = __decorate([
-    (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(ticker_schema_1.Ticker.name)),
-    __metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof upbit_1.Upbit !== "undefined" && upbit_1.Upbit) === "function" ? _b : Object])
-], TickerService);
-exports.TickerService = TickerService;
-
-
-/***/ }),
-/* 20 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TickerSchema = exports.Ticker = void 0;
-const mongoose_1 = __webpack_require__(6);
-let Ticker = class Ticker {
-};
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", String)
-], Ticker.prototype, "market", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", Number)
-], Ticker.prototype, "acc_trade_price_24h", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", Number)
-], Ticker.prototype, "acc_trade_volume_24h", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
-], Ticker.prototype, "created_at", void 0);
-Ticker = __decorate([
-    (0, mongoose_1.Schema)()
-], Ticker);
-exports.Ticker = Ticker;
-exports.TickerSchema = mongoose_1.SchemaFactory.createForClass(Ticker);
-
-
-/***/ }),
-/* 21 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
@@ -1524,16 +1423,14 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
     function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
-var _a, _b;
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ScrapService = void 0;
 const common_1 = __webpack_require__(3);
 const minuteCandle_service_1 = __webpack_require__(8);
-const ticker_service_1 = __webpack_require__(19);
-const interval_1 = __webpack_require__(22);
+const interval_1 = __webpack_require__(19);
 let ScrapService = class ScrapService {
-    constructor(tickerService, minuteCandleService) {
-        this.tickerService = tickerService;
+    constructor(minuteCandleService) {
         this.minuteCandleService = minuteCandleService;
     }
     async onApplicationBootstrap() {
@@ -1543,7 +1440,6 @@ let ScrapService = class ScrapService {
             const date = new Date();
             const baseTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 1).toISOString();
             const ISOBaseTime = new Date(baseTime);
-            await this.tickerService.create();
             await this.minuteCandleService.create(60, 3);
             try {
                 for (var _d = true, unitList_1 = __asyncValues(unitList), unitList_1_1; unitList_1_1 = await unitList_1.next(), _a = unitList_1_1.done, !_a;) {
@@ -1565,21 +1461,20 @@ let ScrapService = class ScrapService {
                 }
                 finally { if (e_1) throw e_1.error; }
             }
-            await this.tickerService.delete();
-            await this.minuteCandleService.delete(60);
+            await this.minuteCandleService.delete(ISOBaseTime);
             console.log(`Done at ${ISOBaseTime}`);
         });
     }
 };
 ScrapService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [typeof (_a = typeof ticker_service_1.TickerService !== "undefined" && ticker_service_1.TickerService) === "function" ? _a : Object, typeof (_b = typeof minuteCandle_service_1.MinuteCandleService !== "undefined" && minuteCandle_service_1.MinuteCandleService) === "function" ? _b : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof minuteCandle_service_1.MinuteCandleService !== "undefined" && minuteCandle_service_1.MinuteCandleService) === "function" ? _a : Object])
 ], ScrapService);
 exports.ScrapService = ScrapService;
 
 
 /***/ }),
-/* 22 */
+/* 19 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
