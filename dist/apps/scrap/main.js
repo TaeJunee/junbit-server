@@ -215,7 +215,6 @@ let MinuteCandleService = class MinuteCandleService {
                                         })
                                             .then(async (res) => {
                                             if (res) {
-                                                console.log('있어', res.candle_date_time_utc);
                                             }
                                             else {
                                                 const tokenCandle = new this.minuteCandleModel({
@@ -275,7 +274,7 @@ let MinuteCandleService = class MinuteCandleService {
             candle_date_time_utc: { $lt: ISOBaseTime },
         });
         await this.tradeRankModel.deleteMany({
-            candle_date_time_utc: { $lt: ISOBaseTime },
+            datetime: { $lt: ISOBaseTime },
         });
         console.log('Done');
     }
@@ -1428,42 +1427,39 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ScrapService = void 0;
 const common_1 = __webpack_require__(3);
 const minuteCandle_service_1 = __webpack_require__(8);
-const interval_1 = __webpack_require__(19);
 let ScrapService = class ScrapService {
     constructor(minuteCandleService) {
         this.minuteCandleService = minuteCandleService;
     }
     async onApplicationBootstrap() {
+        var _a, e_1, _b, _c;
         const unitList = [1, 2, 4, 8, 12, 24];
-        (0, interval_1.makeInterval)(async () => {
-            var _a, e_1, _b, _c;
-            const date = new Date();
-            const baseTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 1).toISOString();
-            const ISOBaseTime = new Date(baseTime);
-            await this.minuteCandleService.create(60, 3);
-            try {
-                for (var _d = true, unitList_1 = __asyncValues(unitList), unitList_1_1; unitList_1_1 = await unitList_1.next(), _a = unitList_1_1.done, !_a;) {
-                    _c = unitList_1_1.value;
-                    _d = false;
-                    try {
-                        let unit = _c;
-                        await this.minuteCandleService.saveRankData(unit, ISOBaseTime);
-                    }
-                    finally {
-                        _d = true;
-                    }
-                }
-            }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
+        const date = new Date();
+        const baseTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 1).toISOString();
+        const ISOBaseTime = new Date(baseTime);
+        await this.minuteCandleService.create(60, 3);
+        try {
+            for (var _d = true, unitList_1 = __asyncValues(unitList), unitList_1_1; unitList_1_1 = await unitList_1.next(), _a = unitList_1_1.done, !_a;) {
+                _c = unitList_1_1.value;
+                _d = false;
                 try {
-                    if (!_d && !_a && (_b = unitList_1.return)) await _b.call(unitList_1);
+                    let unit = _c;
+                    await this.minuteCandleService.saveRankData(unit, ISOBaseTime);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally {
+                    _d = true;
+                }
             }
-            await this.minuteCandleService.delete(ISOBaseTime);
-            console.log(`Done at ${ISOBaseTime}`);
-        });
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (!_d && !_a && (_b = unitList_1.return)) await _b.call(unitList_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+        await this.minuteCandleService.delete(ISOBaseTime);
+        console.log(`Done at ${ISOBaseTime}`);
     }
 };
 ScrapService = __decorate([
@@ -1471,29 +1467,6 @@ ScrapService = __decorate([
     __metadata("design:paramtypes", [typeof (_a = typeof minuteCandle_service_1.MinuteCandleService !== "undefined" && minuteCandle_service_1.MinuteCandleService) === "function" ? _a : Object])
 ], ScrapService);
 exports.ScrapService = ScrapService;
-
-
-/***/ }),
-/* 19 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.makeInterval = void 0;
-const makeInterval = (callback) => {
-    const date = new Date();
-    const hour = 60 * 60 * 1000;
-    const min = date.getMinutes();
-    const sec = date.getSeconds();
-    setTimeout(() => {
-        console.log('Executing...');
-        callback();
-        setInterval(() => {
-            callback();
-        }, hour);
-    }, (60 * (65 - min) + (60 - sec)) * 1000);
-};
-exports.makeInterval = makeInterval;
 
 
 /***/ })
