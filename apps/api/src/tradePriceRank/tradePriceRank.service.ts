@@ -1,17 +1,36 @@
 import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
-import { TokenTradePriceRank } from '@lib/entities/token/tradePriceRank.entity'
-import { GetTradePriceRankDto } from './dtos/get-trade-price-rank-dto'
-import { MinuteCandleService } from '../minuteCandle/minuteCandle.service'
-import { krwTokens } from '../infra/upbit/tokens'
-import { convertDatetime } from '@lib/utils/datetime'
+import { InjectModel } from '@nestjs/mongoose'
+import { Model } from 'mongoose'
+import { TradeRank, TradeRankDocument } from '@lib/schemas/tradeRank.schema'
 
 @Injectable()
 export class TradePriceRankService {
-  constructor(private readonly minuteCandleService: MinuteCandleService) {}
+  constructor(
+    @InjectModel(TradeRank.name)
+    private readonly tradeRankModel: Model<TradeRankDocument>,
+  ) {}
 
-  async findAllByDatetime(hours: HoursType, datetime: Date) {
-    return
+  async findRankByDatetime(hours: HoursType, datetime: Date) {
+    const data = await this.tradeRankModel
+      .find(
+        { unit: hours, datetime },
+        {
+          _id: 0,
+          unit: 1,
+          market: 1,
+          datetime: 1,
+          priceDiff: 1,
+          priceDiffRate: 1,
+          priceDiffRank: 1,
+          priceDiffRateRank: 1,
+          prevPriceDiffRank: 1,
+          prevPriceDiffRateRank: 1,
+          prevDayPriceDiffRank: 1,
+          prevDayPriceDiffRateRank: 1,
+        },
+      )
+      .exec()
+
+    return { payload: data }
   }
 }

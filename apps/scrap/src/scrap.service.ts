@@ -4,11 +4,8 @@ import { makeInterval } from '@lib/utils/interval'
 import { HoursType } from './types'
 @Injectable()
 export class ScrapService implements OnApplicationBootstrap {
-  constructor(
-    private readonly minuteCandleService: MinuteCandleService,
-  ) {}
+  constructor(private readonly minuteCandleService: MinuteCandleService) {}
   async onApplicationBootstrap() {
-
     const unitList: HoursType[] = [1, 2, 4, 8, 12, 24]
     makeInterval(async () => {
       const date = new Date()
@@ -26,6 +23,5 @@ export class ScrapService implements OnApplicationBootstrap {
       await this.minuteCandleService.delete(ISOBaseTime)
       console.log(`Done at ${ISOBaseTime}`)
     })
-
   }
 }

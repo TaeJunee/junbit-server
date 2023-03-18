@@ -119,47 +119,6 @@ exports.ApiService = ApiService;
 
 /***/ }),
 
-/***/ "./apps/api/src/minuteCandle/minuteCandle.service.ts":
-/*!***********************************************************!*\
-  !*** ./apps/api/src/minuteCandle/minuteCandle.service.ts ***!
-  \***********************************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MinuteCandleService = void 0;
-const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const mongoose_1 = __webpack_require__(/*! @nestjs/mongoose */ "@nestjs/mongoose");
-const mongoose_2 = __webpack_require__(/*! mongoose */ "mongoose");
-const minuteCandle_schema_1 = __webpack_require__(/*! @lib/schemas/minuteCandle.schema */ "./libs/schemas/src/minuteCandle.schema.ts");
-let MinuteCandleService = class MinuteCandleService {
-    constructor(minuteCandleModel) {
-        this.minuteCandleModel = minuteCandleModel;
-    }
-};
-MinuteCandleService = __decorate([
-    (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(minuteCandle_schema_1.MinuteCandle.name)),
-    __metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
-], MinuteCandleService);
-exports.MinuteCandleService = MinuteCandleService;
-
-
-/***/ }),
-
 /***/ "./apps/api/src/tradePriceRank/tradePriceRank.controller.ts":
 /*!******************************************************************!*\
   !*** ./apps/api/src/tradePriceRank/tradePriceRank.controller.ts ***!
@@ -188,8 +147,8 @@ let TradePriceRankController = class TradePriceRankController {
     constructor(tradePriceRankService) {
         this.tradePriceRankService = tradePriceRankService;
     }
-    findAllByDatetime(hours, datetime) {
-        return this.tradePriceRankService.findAllByDatetime(hours, datetime);
+    findRankByDatetime(hours, datetime) {
+        return this.tradePriceRankService.findRankByDatetime(hours, datetime);
     }
 };
 __decorate([
@@ -199,7 +158,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [typeof (_b = typeof HoursType !== "undefined" && HoursType) === "function" ? _b : Object, typeof (_c = typeof Date !== "undefined" && Date) === "function" ? _c : Object]),
     __metadata("design:returntype", void 0)
-], TradePriceRankController.prototype, "findAllByDatetime", null);
+], TradePriceRankController.prototype, "findRankByDatetime", null);
 TradePriceRankController = __decorate([
     (0, common_1.Controller)('token'),
     __metadata("design:paramtypes", [typeof (_a = typeof tradePriceRank_service_1.TradePriceRankService !== "undefined" && tradePriceRank_service_1.TradePriceRankService) === "function" ? _a : Object])
@@ -225,15 +184,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TradePriceRankModule = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const mongoose_1 = __webpack_require__(/*! @nestjs/mongoose */ "@nestjs/mongoose");
+const tradeRank_schema_1 = __webpack_require__(/*! @lib/schemas/tradeRank.schema */ "./libs/schemas/src/tradeRank.schema.ts");
 const tradePriceRank_controller_1 = __webpack_require__(/*! ./tradePriceRank.controller */ "./apps/api/src/tradePriceRank/tradePriceRank.controller.ts");
-const tradePriceRank_entity_1 = __webpack_require__(/*! @lib/entities/token/tradePriceRank.entity */ "./libs/entities/src/token/tradePriceRank.entity.ts");
 const tradePriceRank_service_1 = __webpack_require__(/*! ./tradePriceRank.service */ "./apps/api/src/tradePriceRank/tradePriceRank.service.ts");
 let TradePriceRankModule = class TradePriceRankModule {
 };
 TradePriceRankModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([tradePriceRank_entity_1.TokenTradePriceRank])],
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
+                { name: tradeRank_schema_1.TradeRank.name, schema: tradeRank_schema_1.TradeRankSchema },
+            ]),
+        ],
         controllers: [tradePriceRank_controller_1.TradePriceRankController],
         providers: [tradePriceRank_service_1.TradePriceRankService],
     })
@@ -259,22 +222,44 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TradePriceRankService = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const minuteCandle_service_1 = __webpack_require__(/*! ../minuteCandle/minuteCandle.service */ "./apps/api/src/minuteCandle/minuteCandle.service.ts");
+const mongoose_1 = __webpack_require__(/*! @nestjs/mongoose */ "@nestjs/mongoose");
+const mongoose_2 = __webpack_require__(/*! mongoose */ "mongoose");
+const tradeRank_schema_1 = __webpack_require__(/*! @lib/schemas/tradeRank.schema */ "./libs/schemas/src/tradeRank.schema.ts");
 let TradePriceRankService = class TradePriceRankService {
-    constructor(minuteCandleService) {
-        this.minuteCandleService = minuteCandleService;
+    constructor(tradeRankModel) {
+        this.tradeRankModel = tradeRankModel;
     }
-    async findAllByDatetime(hours, datetime) {
-        return;
+    async findRankByDatetime(hours, datetime) {
+        const data = await this.tradeRankModel
+            .find({ unit: hours, datetime }, {
+            _id: 0,
+            unit: 1,
+            market: 1,
+            datetime: 1,
+            priceDiff: 1,
+            priceDiffRate: 1,
+            priceDiffRank: 1,
+            priceDiffRateRank: 1,
+            prevPriceDiffRank: 1,
+            prevPriceDiffRateRank: 1,
+            prevDayPriceDiffRank: 1,
+            prevDayPriceDiffRateRank: 1,
+        })
+            .exec();
+        return { payload: data };
     }
 };
 TradePriceRankService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [typeof (_a = typeof minuteCandle_service_1.MinuteCandleService !== "undefined" && minuteCandle_service_1.MinuteCandleService) === "function" ? _a : Object])
+    __param(0, (0, mongoose_1.InjectModel)(tradeRank_schema_1.TradeRank.name)),
+    __metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
 ], TradePriceRankService);
 exports.TradePriceRankService = TradePriceRankService;
 
@@ -309,8 +294,8 @@ let TradeVolumeRankController = class TradeVolumeRankController {
     constructor(tradeVolumeRankService) {
         this.tradeVolumeRankService = tradeVolumeRankService;
     }
-    findAllByDatetime(hours, datetime) {
-        return this.tradeVolumeRankService.findAllByDatetime(datetime, hours);
+    findRankByDatetime(hours, datetime) {
+        return this.tradeVolumeRankService.findRankByDatetime(hours, datetime);
     }
 };
 __decorate([
@@ -320,7 +305,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [typeof (_b = typeof HoursType !== "undefined" && HoursType) === "function" ? _b : Object, typeof (_c = typeof Date !== "undefined" && Date) === "function" ? _c : Object]),
     __metadata("design:returntype", void 0)
-], TradeVolumeRankController.prototype, "findAllByDatetime", null);
+], TradeVolumeRankController.prototype, "findRankByDatetime", null);
 TradeVolumeRankController = __decorate([
     (0, common_1.Controller)('token'),
     __metadata("design:paramtypes", [typeof (_a = typeof tradeVolumeRank_service_1.TradeVolumeRankService !== "undefined" && tradeVolumeRank_service_1.TradeVolumeRankService) === "function" ? _a : Object])
@@ -346,15 +331,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TradeVolumeRankModule = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const mongoose_1 = __webpack_require__(/*! @nestjs/mongoose */ "@nestjs/mongoose");
+const tradeRank_schema_1 = __webpack_require__(/*! @lib/schemas/tradeRank.schema */ "./libs/schemas/src/tradeRank.schema.ts");
 const tradeVolumeRank_controller_1 = __webpack_require__(/*! ./tradeVolumeRank.controller */ "./apps/api/src/tradeVolumeRank/tradeVolumeRank.controller.ts");
-const tradeVolumeRank_entity_1 = __webpack_require__(/*! @lib/entities/token/tradeVolumeRank.entity */ "./libs/entities/src/token/tradeVolumeRank.entity.ts");
 const tradeVolumeRank_service_1 = __webpack_require__(/*! ./tradeVolumeRank.service */ "./apps/api/src/tradeVolumeRank/tradeVolumeRank.service.ts");
 let TradeVolumeRankModule = class TradeVolumeRankModule {
 };
 TradeVolumeRankModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([tradeVolumeRank_entity_1.TokenTradeVolumeRank])],
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
+                { name: tradeRank_schema_1.TradeRank.name, schema: tradeRank_schema_1.TradeRankSchema },
+            ]),
+        ],
         controllers: [tradeVolumeRank_controller_1.TradeVolumeRankController],
         providers: [tradeVolumeRank_service_1.TradeVolumeRankService],
     })
@@ -387,35 +376,36 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TradeVolumeRankService = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
-const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
-const tradeVolumeRank_entity_1 = __webpack_require__(/*! @lib/entities/token/tradeVolumeRank.entity */ "./libs/entities/src/token/tradeVolumeRank.entity.ts");
+const mongoose_1 = __webpack_require__(/*! @nestjs/mongoose */ "@nestjs/mongoose");
+const mongoose_2 = __webpack_require__(/*! mongoose */ "mongoose");
+const tradeRank_schema_1 = __webpack_require__(/*! @lib/schemas/tradeRank.schema */ "./libs/schemas/src/tradeRank.schema.ts");
 let TradeVolumeRankService = class TradeVolumeRankService {
-    constructor(tokenTradeVolumeRankRepsitory) {
-        this.tokenTradeVolumeRankRepsitory = tokenTradeVolumeRankRepsitory;
+    constructor(tradeRankModel) {
+        this.tradeRankModel = tradeRankModel;
     }
-    async findAllByDatetime(datetime, hours) {
-        this.tokenTradeVolumeRankRepsitory.metadata.tablePath = `trade_volume_rank_${hours}h`;
-        const data = await this.tokenTradeVolumeRankRepsitory.find({
-            select: {
-                diffRateRank: true,
-                prevDiffRateRank: true,
-                prevDayDiffRateRank: true,
-                market: true,
-                volumeDiff: true,
-                volumeDiffRate: true,
-                datetime: true,
-            },
-            where: { datetime: datetime },
-            order: { diffRateRank: 'asc' },
-        });
+    async findRankByDatetime(hours, datetime) {
+        const data = await this.tradeRankModel
+            .find({ unit: hours, datetime }, {
+            _id: 0,
+            unit: 1,
+            market: 1,
+            datetime: 1,
+            volumeDiff: 1,
+            volumeDiffRate: 1,
+            volumeDiffRateRank: 1,
+            prevVolumeDiffRank: 1,
+            prevVolumeDiffRateRank: 1,
+            prevDayVolumeDiffRank: 1,
+            prevDayVolumeDiffRateRank: 1,
+        })
+            .exec();
         return { payload: data };
     }
 };
 TradeVolumeRankService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(tradeVolumeRank_entity_1.TokenTradeVolumeRank)),
-    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object])
+    __param(0, (0, mongoose_1.InjectModel)(tradeRank_schema_1.TradeRank.name)),
+    __metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
 ], TradeVolumeRankService);
 exports.TradeVolumeRankService = TradeVolumeRankService;
 
@@ -438,33 +428,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DatabaseModule = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
 const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
-const typeorm_naming_strategies_1 = __webpack_require__(/*! typeorm-naming-strategies */ "typeorm-naming-strategies");
 const mongoose_1 = __webpack_require__(/*! @nestjs/mongoose */ "@nestjs/mongoose");
-const tradeVolumeRank_entity_1 = __webpack_require__(/*! ../../../entities/src/token/tradeVolumeRank.entity */ "./libs/entities/src/token/tradeVolumeRank.entity.ts");
-const tradePriceRank_entity_1 = __webpack_require__(/*! @lib/entities/token/tradePriceRank.entity */ "./libs/entities/src/token/tradePriceRank.entity.ts");
 let DatabaseModule = class DatabaseModule {
 };
 DatabaseModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forRootAsync({
-                imports: [config_1.ConfigModule],
-                inject: [config_1.ConfigService],
-                useFactory: async (configService) => ({
-                    type: 'mysql',
-                    host: configService.get('MYSQL_HOSTNAME'),
-                    port: configService.get('MYSQL_PORT'),
-                    username: configService.get('MYSQL_USERNAME'),
-                    password: configService.get('MYSQL_PASSWORD'),
-                    database: configService.get('MYSQL_DATABASE'),
-                    entities: [tradeVolumeRank_entity_1.TokenTradeVolumeRank, tradePriceRank_entity_1.TokenTradePriceRank],
-                    namingStrategy: new typeorm_naming_strategies_1.SnakeNamingStrategy(),
-                    timezone: 'Z',
-                    synchronize: true,
-                }),
-            }),
             mongoose_1.MongooseModule.forRootAsync({
                 imports: [config_1.ConfigModule],
                 inject: [config_1.ConfigService],
@@ -485,10 +455,10 @@ exports.DatabaseModule = DatabaseModule;
 
 /***/ }),
 
-/***/ "./libs/entities/src/token/tradePriceRank.entity.ts":
-/*!**********************************************************!*\
-  !*** ./libs/entities/src/token/tradePriceRank.entity.ts ***!
-  \**********************************************************/
+/***/ "./libs/schemas/src/tradeRank.schema.ts":
+/*!**********************************************!*\
+  !*** ./libs/schemas/src/tradeRank.schema.ts ***!
+  \**********************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -503,175 +473,95 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TokenTradePriceRank = void 0;
-const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
-let TokenTradePriceRank = class TokenTradePriceRank {
-};
-__decorate([
-    (0, typeorm_1.PrimaryColumn)(),
-    __metadata("design:type", Number)
-], TokenTradePriceRank.prototype, "id", void 0);
-__decorate([
-    (0, typeorm_1.Column)('int'),
-    __metadata("design:type", Number)
-], TokenTradePriceRank.prototype, "diffRank", void 0);
-__decorate([
-    (0, typeorm_1.Column)('int'),
-    __metadata("design:type", Number)
-], TokenTradePriceRank.prototype, "prevDiffRank", void 0);
-__decorate([
-    (0, typeorm_1.Column)('int'),
-    __metadata("design:type", Number)
-], TokenTradePriceRank.prototype, "prevDayDiffRank", void 0);
-__decorate([
-    (0, typeorm_1.Column)('int'),
-    __metadata("design:type", Number)
-], TokenTradePriceRank.prototype, "diffRateRank", void 0);
-__decorate([
-    (0, typeorm_1.Column)('int'),
-    __metadata("design:type", Number)
-], TokenTradePriceRank.prototype, "prevDiffRateRank", void 0);
-__decorate([
-    (0, typeorm_1.Column)('int'),
-    __metadata("design:type", Number)
-], TokenTradePriceRank.prototype, "prevDayDiffRateRank", void 0);
-__decorate([
-    (0, typeorm_1.Column)('varchar'),
-    __metadata("design:type", String)
-], TokenTradePriceRank.prototype, "market", void 0);
-__decorate([
-    (0, typeorm_1.Column)('double'),
-    __metadata("design:type", Number)
-], TokenTradePriceRank.prototype, "priceDiff", void 0);
-__decorate([
-    (0, typeorm_1.Column)('double'),
-    __metadata("design:type", Number)
-], TokenTradePriceRank.prototype, "priceDiffRate", void 0);
-__decorate([
-    (0, typeorm_1.Column)('datetime'),
-    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
-], TokenTradePriceRank.prototype, "datetime", void 0);
-TokenTradePriceRank = __decorate([
-    (0, typeorm_1.Entity)()
-], TokenTradePriceRank);
-exports.TokenTradePriceRank = TokenTradePriceRank;
-
-
-/***/ }),
-
-/***/ "./libs/entities/src/token/tradeVolumeRank.entity.ts":
-/*!***********************************************************!*\
-  !*** ./libs/entities/src/token/tradeVolumeRank.entity.ts ***!
-  \***********************************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TokenTradeVolumeRank = void 0;
-const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
-let TokenTradeVolumeRank = class TokenTradeVolumeRank {
-};
-__decorate([
-    (0, typeorm_1.PrimaryColumn)(),
-    __metadata("design:type", Number)
-], TokenTradeVolumeRank.prototype, "id", void 0);
-__decorate([
-    (0, typeorm_1.Column)('int'),
-    __metadata("design:type", Number)
-], TokenTradeVolumeRank.prototype, "diffRateRank", void 0);
-__decorate([
-    (0, typeorm_1.Column)('int'),
-    __metadata("design:type", Number)
-], TokenTradeVolumeRank.prototype, "prevDiffRateRank", void 0);
-__decorate([
-    (0, typeorm_1.Column)('int'),
-    __metadata("design:type", Number)
-], TokenTradeVolumeRank.prototype, "prevDayDiffRateRank", void 0);
-__decorate([
-    (0, typeorm_1.Column)('varchar'),
-    __metadata("design:type", String)
-], TokenTradeVolumeRank.prototype, "market", void 0);
-__decorate([
-    (0, typeorm_1.Column)('double'),
-    __metadata("design:type", Number)
-], TokenTradeVolumeRank.prototype, "volumeDiff", void 0);
-__decorate([
-    (0, typeorm_1.Column)('double'),
-    __metadata("design:type", Number)
-], TokenTradeVolumeRank.prototype, "volumeDiffRate", void 0);
-__decorate([
-    (0, typeorm_1.Column)('datetime'),
-    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
-], TokenTradeVolumeRank.prototype, "datetime", void 0);
-TokenTradeVolumeRank = __decorate([
-    (0, typeorm_1.Entity)()
-], TokenTradeVolumeRank);
-exports.TokenTradeVolumeRank = TokenTradeVolumeRank;
-
-
-/***/ }),
-
-/***/ "./libs/schemas/src/minuteCandle.schema.ts":
-/*!*************************************************!*\
-  !*** ./libs/schemas/src/minuteCandle.schema.ts ***!
-  \*************************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MinuteCandleSchema = exports.MinuteCandle = void 0;
+exports.TradeRankSchema = exports.TradeRank = void 0;
 const mongoose_1 = __webpack_require__(/*! @nestjs/mongoose */ "@nestjs/mongoose");
-let MinuteCandle = class MinuteCandle {
+let TradeRank = class TradeRank {
 };
 __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", String)
-], MinuteCandle.prototype, "market", void 0);
+], TradeRank.prototype, "market", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "volumeSum", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "priceSum", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "volumeSumRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "priceSumRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "volumeDiff", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "priceDiff", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "priceDiffRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "volumeDiffRate", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "priceDiffRate", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "volumeDiffRateRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "priceDiffRateRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "prevVolumeDiffRateRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "prevDayVolumeDiffRateRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "prevPriceDiffRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "prevDayPriceDiffRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "prevPriceDiffRateRank", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], TradeRank.prototype, "prevDayPriceDiffRateRank", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
-], MinuteCandle.prototype, "candle_date_time_utc", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", String)
-], MinuteCandle.prototype, "timestamp", void 0);
+], TradeRank.prototype, "datetime", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", Number)
-], MinuteCandle.prototype, "candle_acc_trade_price", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", Number)
-], MinuteCandle.prototype, "candle_acc_trade_volume", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", Number)
-], MinuteCandle.prototype, "unit", void 0);
-MinuteCandle = __decorate([
+], TradeRank.prototype, "unit", void 0);
+TradeRank = __decorate([
     (0, mongoose_1.Schema)()
-], MinuteCandle);
-exports.MinuteCandle = MinuteCandle;
-exports.MinuteCandleSchema = mongoose_1.SchemaFactory.createForClass(MinuteCandle);
+], TradeRank);
+exports.TradeRank = TradeRank;
+exports.TradeRankSchema = mongoose_1.SchemaFactory.createForClass(TradeRank);
 
 
 /***/ }),
@@ -716,16 +606,6 @@ module.exports = require("@nestjs/mongoose");
 
 /***/ }),
 
-/***/ "@nestjs/typeorm":
-/*!**********************************!*\
-  !*** external "@nestjs/typeorm" ***!
-  \**********************************/
-/***/ ((module) => {
-
-module.exports = require("@nestjs/typeorm");
-
-/***/ }),
-
 /***/ "mongoose":
 /*!***************************!*\
   !*** external "mongoose" ***!
@@ -733,26 +613,6 @@ module.exports = require("@nestjs/typeorm");
 /***/ ((module) => {
 
 module.exports = require("mongoose");
-
-/***/ }),
-
-/***/ "typeorm":
-/*!**************************!*\
-  !*** external "typeorm" ***!
-  \**************************/
-/***/ ((module) => {
-
-module.exports = require("typeorm");
-
-/***/ }),
-
-/***/ "typeorm-naming-strategies":
-/*!********************************************!*\
-  !*** external "typeorm-naming-strategies" ***!
-  \********************************************/
-/***/ ((module) => {
-
-module.exports = require("typeorm-naming-strategies");
 
 /***/ })
 

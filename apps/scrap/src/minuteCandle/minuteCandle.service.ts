@@ -5,12 +5,12 @@ import {
   MinuteCandle,
   MinuteCandleDocument,
 } from '@lib/schemas/minuteCandle.schema'
+import { TradeRank, TradeRankDocument } from '@lib/schemas/tradeRank.schema'
 import { Upbit } from '@lib/utils/upbit'
 import { sleep } from '@lib/utils/sleep'
 import { krwTokens } from '../infra/upbit/tokens'
 import { MinutesType, HoursType, ResponseType } from '../types'
 import { convertDatetime } from '@lib/utils/datetime'
-import { TradeRank, TradeRankDocument } from '@lib/schemas/tradeRank.schema'
 import { ObjType } from '../types'
 import { cloneDeep } from 'lodash'
 @Injectable()
@@ -108,7 +108,9 @@ export class MinuteCandleService {
       .sort({ candle_date_time_utc: -1 })
       .limit(hours * 2)
 
-    if (result.length < hours * 2) { return }
+    if (result.length < hours * 2) {
+      return
+    }
     return result
   }
 
@@ -121,7 +123,7 @@ export class MinuteCandleService {
         hours,
         datetime,
       )
-      
+
       if (!data) {
         return
       }
@@ -172,7 +174,7 @@ export class MinuteCandleService {
   }
 
   async saveRankData(hours: HoursType, datetime: Date) {
-    console.log("SAVING RANK DATA UNIT::: ", hours, "DATETIME::: ", datetime)
+    console.log('SAVING RANK DATA UNIT::: ', hours, 'DATETIME::: ', datetime)
     const { year, month, date, hour } = convertDatetime(datetime)
     const newDatetime = new Date(year, month, date, hour).toISOString()
     const ISONewDatetime = new Date(newDatetime)
@@ -182,7 +184,9 @@ export class MinuteCandleService {
     const ISOPrevDay = new Date(prevDay)
 
     const data: ObjType[] | null = await this.calculate(hours, ISONewDatetime)
-    if (!data) { return }
+    if (!data) {
+      return
+    }
 
     let array = []
 
@@ -203,29 +207,26 @@ export class MinuteCandleService {
     )
 
     for await (let item of data) {
-      const exist = await this.tradeRankModel
-        .findOne({
+      const exist = await this.tradeRankModel.findOne({
+        market: item.market,
+        datetime: item.datetime,
+        unit: hours,
+      })
+
+      if (exist) {
+      } else {
+        let obj = {}
+        const prevData = await this.tradeRankModel.findOne({
           market: item.market,
-          datetime: item.datetime,
-          unit: hours
+          datetime: ISOPrevTime,
+          unit: hours,
+        })
+        const prevDayData = await this.tradeRankModel.findOne({
+          market: item.market,
+          datetime: ISOPrevDay,
+          unit: hours,
         })
 
-      if (exist) {}
-      else {
-        let obj = {}
-        const prevData = await this.tradeRankModel
-          .findOne({
-            market: item.market,
-            datetime: ISOPrevTime,
-            unit: hours
-          })
-        const prevDayData = await this.tradeRankModel
-          .findOne({
-            market: item.market,
-            datetime: ISOPrevDay,
-            unit: hours
-          })
-        
         obj['market'] = item.market
         obj['volumeSum'] = item[`volumeSum${hours}H`]
         obj['priceSum'] = item[`priceSum${hours}H`]
@@ -282,4 +283,3 @@ export class MinuteCandleService {
     }
   }
 }
-

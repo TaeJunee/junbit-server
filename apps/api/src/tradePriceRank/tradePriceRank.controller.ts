@@ -6,10 +6,10 @@ export class TradePriceRankController {
   constructor(private readonly tradePriceRankService: TradePriceRankService) {}
 
   @Get('trade-price-rank')
-  findAllByDatetime(
+  findRankByDatetime(
     @Query('unit') hours: HoursType,
     @Query('datetime') datetime: Date,
   ) {
-    return this.tradePriceRankService.findAllByDatetime(hours, datetime)
+    return this.tradePriceRankService.findRankByDatetime(hours, datetime)
   }
 }
