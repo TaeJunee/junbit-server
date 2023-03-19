@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config'
 import { DatabaseModule } from '@lib/config/database/database.module'
 import { TradeVolumeRankModule } from './tradeVolumeRank/tradeVolumeRank.module'
 import { TradePriceRankModule } from './tradePriceRank/tradePriceRank.module'
+import { ChartModule } from './chart/chart.module'
 import { ApiController } from './api.controller'
 import { ApiService } from './api.service'
 
@@ -15,6 +16,7 @@ import { ApiService } from './api.service'
     DatabaseModule,
     TradeVolumeRankModule,
     TradePriceRankModule,
+    ChartModule,
   ],
   controllers: [ApiController],
   providers: [ApiService],

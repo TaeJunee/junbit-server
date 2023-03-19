@@ -1,7 +1,7 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common'
 import { MinuteCandleService } from './minuteCandle/minuteCandle.service'
 import { makeInterval } from '@lib/utils/interval'
-import { HoursType } from './types'
+
 @Injectable()
 export class ScrapService implements OnApplicationBootstrap {
   constructor(private readonly minuteCandleService: MinuteCandleService) {}

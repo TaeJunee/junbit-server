@@ -9,9 +9,8 @@ import { TradeRank, TradeRankDocument } from '@lib/schemas/tradeRank.schema'
 import { Upbit } from '@lib/utils/upbit'
 import { sleep } from '@lib/utils/sleep'
 import { krwTokens } from '../infra/upbit/tokens'
-import { MinutesType, HoursType, ResponseType } from '../types'
+import { ResponseType, ObjType } from 'types'
 import { convertDatetime } from '@lib/utils/datetime'
-import { ObjType } from '../types'
 import { cloneDeep } from 'lodash'
 @Injectable()
 export class MinuteCandleService {
