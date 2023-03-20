@@ -17,7 +17,32 @@ export class ChartService {
     datetime: string,
   ) {
     const { year, month, date, hour } = convertDatetime(new Date(datetime))
-    const baseTime = new Date(year, month, date - 14, hour).toISOString()
+    let baseTime: Date
+
+    switch (hours) {
+      case 1:
+        baseTime = new Date(year, month, date - 1, hour)
+        break
+      case 2:
+        baseTime = new Date(year, month, date - 2, hour)
+        break
+      case 4:
+        baseTime = new Date(year, month, date - 4, hour)
+        break
+      case 8:
+        baseTime = new Date(year, month, date - 8, hour)
+        break
+      case 12:
+        baseTime = new Date(year, month, date - 12, hour)
+        break
+      case 24:
+        baseTime = new Date(year, month, date - 24, hour)
+        break
+      default:
+        baseTime = new Date(year, month, date - 1, hour)
+        break
+    }
+
     const ISOBaseTime = new Date(baseTime)
 
     const data = await this.tradeRankModel
@@ -37,9 +62,15 @@ export class ChartService {
           volumeDiffRateRank: 1,
         },
       )
-      .sort({ datetime: 1 })
+      .sort({ datetime: -1 })
       .limit(24)
       .exec()
+
+    data.sort((a, b) => {
+      if (a.datetime > b.datetime) return 1
+      if (a.datetime < b.datetime) return -1
+      return 0
+    })
 
     return { payload: data }
   }
@@ -50,7 +81,32 @@ export class ChartService {
     datetime: string,
   ) {
     const { year, month, date, hour } = convertDatetime(new Date(datetime))
-    const baseTime = new Date(year, month, date - 14, hour).toISOString()
+    let baseTime: Date
+
+    switch (hours) {
+      case 1:
+        baseTime = new Date(year, month, date - 1, hour)
+        break
+      case 2:
+        baseTime = new Date(year, month, date - 2, hour)
+        break
+      case 4:
+        baseTime = new Date(year, month, date - 4, hour)
+        break
+      case 8:
+        baseTime = new Date(year, month, date - 8, hour)
+        break
+      case 12:
+        baseTime = new Date(year, month, date - 12, hour)
+        break
+      case 24:
+        baseTime = new Date(year, month, date - 24, hour)
+        break
+      default:
+        baseTime = new Date(year, month, date - 1, hour)
+        break
+    }
+
     const ISOBaseTime = new Date(baseTime)
 
     const data = await this.tradeRankModel
@@ -71,9 +127,15 @@ export class ChartService {
           priceDiffRateRank: 1,
         },
       )
-      .sort({ datetime: 1 })
+      .sort({ datetime: -1 })
       .limit(24)
       .exec()
+
+    data.sort((a, b) => {
+      if (a.datetime > b.datetime) return 1
+      if (a.datetime < b.datetime) return -1
+      return 0
+    })
 
     return { payload: data }
   }

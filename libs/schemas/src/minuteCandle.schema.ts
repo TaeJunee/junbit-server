@@ -9,7 +9,7 @@ export class MinuteCandle {
   market: string
 
   @Prop()
-  candle_date_time_utc: Date
+  candle_date_time_utc: string
 
   @Prop()
   timestamp: string

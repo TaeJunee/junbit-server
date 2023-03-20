@@ -1,12 +1,12 @@
 import axios from 'axios'
 
 export class Upbit {
-  baseURL = 'https://api.upbit.com/v1'
+  BASE_URL = 'https://api.upbit.com/v1'
   options = { method: 'GET', headers: { accept: 'application/json' } }
 
   // getAllMarkets(): any {
   //   const response = fetch(
-  //     `${this.baseURL}/market/all?isDetails=false`,
+  //     `${this.BASE_URL}/market/all?isDetails=false`,
   //     this.options,
   //   );
   //   return response.then((res) => res.json());
@@ -15,11 +15,12 @@ export class Upbit {
   async getMinuteCandle(
     unit: number,
     market: string,
-    count = 10,
+    to: string,
+    count = 1,
   ): Promise<any> {
     try {
       const response = await axios.get(
-        `${this.baseURL}/candles/minutes/${unit}?market=${market}&count=${count}`,
+        `${this.BASE_URL}/candles/minutes/${unit}?market=${market}&to=${to}&count=${count}`,
         this.options,
       )
 
@@ -29,9 +30,9 @@ export class Upbit {
     }
   }
 
-  // async getDayCandle(market: string, count = 5): Promise<any> {
+  // async getDayCandle(market: string, count = 1): Promise<any> {
   //   const response = await axios.get(
-  //     `${this.baseURL}/candles/days?market=${market}&count=${count}`,
+  //     `${this.BASE_URL}/candles/days?market=${market}&count=${count}`,
   //     this.options,
   //   );
   //   return response.data;
@@ -40,7 +41,7 @@ export class Upbit {
   async getTicker(markets: string): Promise<any> {
     try {
       const response = await axios.get(
-        `${this.baseURL}/ticker?markets=${markets}`,
+        `${this.BASE_URL}/ticker?markets=${markets}`,
         this.options,
       )
 

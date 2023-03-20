@@ -1,20 +1,14 @@
 declare type HoursType = 1 | 2 | 3 | 4 | 8 | 12 | 24
-declare type MinutesType = 30 | 60 | 120 | 180 | 240
 declare type RankType = 'VOLUME' | 'PRICE'
 declare type PriceRankType = 'DIFF' | 'DIFF_RATE'
 
 declare module 'types' {
   interface ResponseType {
     market: string
-    candle_date_time_utc: Date
-    candle_date_time_kst: Date
-    opening_price: number
-    low_price: number
+    candle_date_time_utc: string
     timestamp: string
     candle_acc_trade_price: number
     candle_acc_trade_volume: number
-    acc_trade_price_24h?: number
-    acc_trade_volume_24h?: number
     unit: number
   }
 
@@ -56,6 +50,6 @@ declare module 'types' {
     priceDiff24H?: number
     volumeDiffRate24H?: number
     priceDiffRate24H?: number
-    datetime: Date
+    datetime: string
   }
 }

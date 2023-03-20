@@ -254,10 +254,37 @@ let ChartService = class ChartService {
     }
     async findTokenVolumeRankByDatetime(market, hours, datetime) {
         const { year, month, date, hour } = (0, datetime_1.convertDatetime)(new Date(datetime));
-        const baseTime = new Date(year, month, date - 14, hour).toISOString();
+        let baseTime;
+        switch (hours) {
+            case 1:
+                baseTime = new Date(year, month, date - 1, hour);
+                break;
+            case 2:
+                baseTime = new Date(year, month, date - 2, hour);
+                break;
+            case 4:
+                baseTime = new Date(year, month, date - 4, hour);
+                break;
+            case 8:
+                baseTime = new Date(year, month, date - 8, hour);
+                break;
+            case 12:
+                baseTime = new Date(year, month, date - 12, hour);
+                break;
+            case 24:
+                baseTime = new Date(year, month, date - 24, hour);
+                break;
+            default:
+                baseTime = new Date(year, month, date - 1, hour);
+                break;
+        }
         const ISOBaseTime = new Date(baseTime);
         const data = await this.tradeRankModel
-            .find({ market, unit: hours, datetime: { $lte: datetime, $gte: ISOBaseTime } }, {
+            .find({
+            market,
+            unit: hours,
+            datetime: { $lte: datetime, $gte: ISOBaseTime },
+        }, {
             _id: 0,
             unit: 1,
             market: 1,
@@ -266,17 +293,51 @@ let ChartService = class ChartService {
             volumeSumRank: 1,
             volumeDiffRateRank: 1,
         })
-            .sort({ datetime: 1 })
+            .sort({ datetime: -1 })
             .limit(24)
             .exec();
+        data.sort((a, b) => {
+            if (a.datetime > b.datetime)
+                return 1;
+            if (a.datetime < b.datetime)
+                return -1;
+            return 0;
+        });
         return { payload: data };
     }
     async findTokenPriceRankByDatetime(market, hours, datetime) {
         const { year, month, date, hour } = (0, datetime_1.convertDatetime)(new Date(datetime));
-        const baseTime = new Date(year, month, date - 14, hour).toISOString();
+        let baseTime;
+        switch (hours) {
+            case 1:
+                baseTime = new Date(year, month, date - 1, hour);
+                break;
+            case 2:
+                baseTime = new Date(year, month, date - 2, hour);
+                break;
+            case 4:
+                baseTime = new Date(year, month, date - 4, hour);
+                break;
+            case 8:
+                baseTime = new Date(year, month, date - 8, hour);
+                break;
+            case 12:
+                baseTime = new Date(year, month, date - 12, hour);
+                break;
+            case 24:
+                baseTime = new Date(year, month, date - 24, hour);
+                break;
+            default:
+                baseTime = new Date(year, month, date - 1, hour);
+                break;
+        }
         const ISOBaseTime = new Date(baseTime);
         const data = await this.tradeRankModel
-            .find({ market, unit: hours, datetime: { $lte: datetime, $gte: ISOBaseTime } }, {
+            .find({
+            market,
+            unit: hours,
+            datetime: { $lte: datetime, $gte: ISOBaseTime },
+        }, {
             _id: 0,
             unit: 1,
             market: 1,
@@ -286,9 +347,16 @@ let ChartService = class ChartService {
             priceDiffRank: 1,
             priceDiffRateRank: 1,
         })
-            .sort({ datetime: 1 })
+            .sort({ datetime: -1 })
             .limit(24)
             .exec();
+        data.sort((a, b) => {
+            if (a.datetime > b.datetime)
+                return 1;
+            if (a.datetime < b.datetime)
+                return -1;
+            return 0;
+        });
         return { payload: data };
     }
 };

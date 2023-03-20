@@ -12,6 +12,7 @@ import { krwTokens } from '../infra/upbit/tokens'
 import { ResponseType, ObjType } from 'types'
 import { convertDatetime } from '@lib/utils/datetime'
 import { cloneDeep } from 'lodash'
+import { CreateMinuteCandleDto } from './dtos/create-minute-candle.dto'
 @Injectable()
 export class MinuteCandleService {
   constructor(
@@ -22,62 +23,54 @@ export class MinuteCandleService {
     private readonly upbit: Upbit,
   ) {}
 
-  async create(unit: MinutesType, count: number): Promise<void> {
-    console.log(`Saving MinuteCandles`)
+  async create(unit: number, to: string): Promise<void> {
     let i = 1
+    const array: CreateMinuteCandleDto[] = []
+
     for await (let token of krwTokens) {
       const start = Date.now()
-      await this.upbit
-        .getMinuteCandle(unit, token.market, count)
-        .then(async (res: ResponseType[]) => {
-          console.log(res[0].market, res[0].candle_date_time_kst)
-          const reversedResponses = res.reverse()
-          for await (let response of reversedResponses) {
-            if (
-              reversedResponses.indexOf(response) ===
-              reversedResponses.length - 1
-            ) {
-            } else {
-              await this.minuteCandleModel
-                .findOne({
-                  market: response.market,
-                  timestamp: response.timestamp,
-                })
-                .then(async (res) => {
-                  if (res) {
-                  } else {
-                    const tokenCandle = new this.minuteCandleModel({
-                      market: response.market,
-                      candle_date_time_utc: new Date(
-                        `${response.candle_date_time_utc}.000Z`,
-                      ),
-                      timestamp: response.timestamp,
-                      candle_acc_trade_price: response.candle_acc_trade_price,
-                      candle_acc_trade_volume: response.candle_acc_trade_volume,
-                      unit: response.unit,
-                    })
-                    await tokenCandle.save()
-                  }
-                })
-            }
-          }
-        })
-        .then(async () => {
-          const now = Date.now()
-          if (i % 10 === 0 && now - start < 1000) {
-            await sleep(1200 - (now - start))
-          }
-          i++
-        })
+      const response = await this.upbit.getMinuteCandle(unit, token.market, to)
+
+      const exist = await this.minuteCandleModel.findOne({
+        timestamp: response[0].timestamp,
+      })
+      if (exist) {
+        return
+      }
+
+      const obj = {} as CreateMinuteCandleDto
+      const res = response[0]
+      obj['market'] = res.market
+      obj['candle_date_time_utc'] = `${res.candle_date_time_utc}.000Z`
+      obj['timestamp'] = res.timestamp
+      obj['candle_acc_trade_price'] = res.candle_acc_trade_price
+      obj['candle_acc_trade_volume'] = res.candle_acc_trade_volume
+      obj['unit'] = res.unit
+
+      array.push(obj)
+
+      const now = Date.now()
+      if (i % 10 === 0 && now - start < 1000) {
+        await sleep(1100 - (now - start))
+      }
+      if (i === 115 && now - start < 1000) {
+        await sleep(1100 - (now - start))
+      }
+      i++
     }
-    console.log('DONE')
+
+    try {
+      await this.minuteCandleModel.insertMany(array)
+    } catch (e) {
+      throw new Error(e)
+    }
   }
 
   async delete(datetime: Date): Promise<void> {
     console.log('Deleteing MinuteCandles')
 
     const { year, month, date, hour } = convertDatetime(datetime)
-    const baseTime = new Date(year, month, date - 14, hour).toISOString()
+    const baseTime = new Date(year, month, date - 25, hour).toISOString()
     const ISOBaseTime = new Date(baseTime)
 
     await this.minuteCandleModel.deleteMany({
@@ -110,6 +103,7 @@ export class MinuteCandleService {
     if (result.length < hours * 2) {
       return
     }
+
     return result
   }
 
