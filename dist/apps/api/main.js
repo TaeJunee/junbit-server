@@ -66,6 +66,7 @@ const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
 const database_module_1 = __webpack_require__(/*! @lib/config/database/database.module */ "./libs/config/src/database/database.module.ts");
 const tradeVolumeRank_module_1 = __webpack_require__(/*! ./tradeVolumeRank/tradeVolumeRank.module */ "./apps/api/src/tradeVolumeRank/tradeVolumeRank.module.ts");
 const tradePriceRank_module_1 = __webpack_require__(/*! ./tradePriceRank/tradePriceRank.module */ "./apps/api/src/tradePriceRank/tradePriceRank.module.ts");
+const chart_module_1 = __webpack_require__(/*! ./chart/chart.module */ "./apps/api/src/chart/chart.module.ts");
 const api_controller_1 = __webpack_require__(/*! ./api.controller */ "./apps/api/src/api.controller.ts");
 const api_service_1 = __webpack_require__(/*! ./api.service */ "./apps/api/src/api.service.ts");
 let ApiModule = class ApiModule {
@@ -80,6 +81,7 @@ ApiModule = __decorate([
             database_module_1.DatabaseModule,
             tradeVolumeRank_module_1.TradeVolumeRankModule,
             tradePriceRank_module_1.TradePriceRankModule,
+            chart_module_1.ChartModule,
         ],
         controllers: [api_controller_1.ApiController],
         providers: [api_service_1.ApiService],
@@ -115,6 +117,255 @@ ApiService = __decorate([
     (0, common_1.Injectable)()
 ], ApiService);
 exports.ApiService = ApiService;
+
+
+/***/ }),
+
+/***/ "./apps/api/src/chart/chart.controller.ts":
+/*!************************************************!*\
+  !*** ./apps/api/src/chart/chart.controller.ts ***!
+  \************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ChartController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const chart_service_1 = __webpack_require__(/*! ./chart.service */ "./apps/api/src/chart/chart.service.ts");
+let ChartController = class ChartController {
+    constructor(chartService) {
+        this.chartService = chartService;
+    }
+    findTokenVolumeRankByDatetime(market, hours, datetime) {
+        return this.chartService.findTokenVolumeRankByDatetime(market, hours, datetime);
+    }
+    findTokenPriceRankByDatetime(market, hours, datetime) {
+        return this.chartService.findTokenPriceRankByDatetime(market, hours, datetime);
+    }
+};
+__decorate([
+    (0, common_1.Get)('chart/volume'),
+    __param(0, (0, common_1.Query)('market')),
+    __param(1, (0, common_1.Query)('unit')),
+    __param(2, (0, common_1.Query)('datetime')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, typeof (_b = typeof HoursType !== "undefined" && HoursType) === "function" ? _b : Object, String]),
+    __metadata("design:returntype", void 0)
+], ChartController.prototype, "findTokenVolumeRankByDatetime", null);
+__decorate([
+    (0, common_1.Get)('chart/price'),
+    __param(0, (0, common_1.Query)('market')),
+    __param(1, (0, common_1.Query)('unit')),
+    __param(2, (0, common_1.Query)('datetime')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, typeof (_c = typeof HoursType !== "undefined" && HoursType) === "function" ? _c : Object, String]),
+    __metadata("design:returntype", void 0)
+], ChartController.prototype, "findTokenPriceRankByDatetime", null);
+ChartController = __decorate([
+    (0, common_1.Controller)('token'),
+    __metadata("design:paramtypes", [typeof (_a = typeof chart_service_1.ChartService !== "undefined" && chart_service_1.ChartService) === "function" ? _a : Object])
+], ChartController);
+exports.ChartController = ChartController;
+
+
+/***/ }),
+
+/***/ "./apps/api/src/chart/chart.module.ts":
+/*!********************************************!*\
+  !*** ./apps/api/src/chart/chart.module.ts ***!
+  \********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ChartModule = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const mongoose_1 = __webpack_require__(/*! @nestjs/mongoose */ "@nestjs/mongoose");
+const tradeRank_schema_1 = __webpack_require__(/*! @lib/schemas/tradeRank.schema */ "./libs/schemas/src/tradeRank.schema.ts");
+const chart_controller_1 = __webpack_require__(/*! ./chart.controller */ "./apps/api/src/chart/chart.controller.ts");
+const chart_service_1 = __webpack_require__(/*! ./chart.service */ "./apps/api/src/chart/chart.service.ts");
+let ChartModule = class ChartModule {
+};
+ChartModule = __decorate([
+    (0, common_1.Module)({
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
+                { name: tradeRank_schema_1.TradeRank.name, schema: tradeRank_schema_1.TradeRankSchema },
+            ]),
+        ],
+        controllers: [chart_controller_1.ChartController],
+        providers: [chart_service_1.ChartService],
+    })
+], ChartModule);
+exports.ChartModule = ChartModule;
+
+
+/***/ }),
+
+/***/ "./apps/api/src/chart/chart.service.ts":
+/*!*********************************************!*\
+  !*** ./apps/api/src/chart/chart.service.ts ***!
+  \*********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ChartService = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const mongoose_1 = __webpack_require__(/*! @nestjs/mongoose */ "@nestjs/mongoose");
+const mongoose_2 = __webpack_require__(/*! mongoose */ "mongoose");
+const tradeRank_schema_1 = __webpack_require__(/*! @lib/schemas/tradeRank.schema */ "./libs/schemas/src/tradeRank.schema.ts");
+const datetime_1 = __webpack_require__(/*! @lib/utils/datetime */ "./libs/utils/src/datetime.ts");
+let ChartService = class ChartService {
+    constructor(tradeRankModel) {
+        this.tradeRankModel = tradeRankModel;
+    }
+    async findTokenVolumeRankByDatetime(market, hours, datetime) {
+        const { year, month, date, hour } = (0, datetime_1.convertDatetime)(new Date(datetime));
+        let baseTime;
+        switch (hours) {
+            case 1:
+                baseTime = new Date(year, month, date - 1, hour);
+                break;
+            case 2:
+                baseTime = new Date(year, month, date - 2, hour);
+                break;
+            case 4:
+                baseTime = new Date(year, month, date - 4, hour);
+                break;
+            case 8:
+                baseTime = new Date(year, month, date - 8, hour);
+                break;
+            case 12:
+                baseTime = new Date(year, month, date - 12, hour);
+                break;
+            case 24:
+                baseTime = new Date(year, month, date - 24, hour);
+                break;
+            default:
+                baseTime = new Date(year, month, date - 1, hour);
+                break;
+        }
+        const ISOBaseTime = new Date(baseTime);
+        const data = await this.tradeRankModel
+            .find({
+            market,
+            unit: hours,
+            datetime: { $lte: datetime, $gte: ISOBaseTime },
+        }, {
+            _id: 0,
+            unit: 1,
+            market: 1,
+            datetime: 1,
+            volumeSum: 1,
+            volumeSumRank: 1,
+            volumeDiffRateRank: 1,
+        })
+            .sort({ datetime: -1 })
+            .limit(24)
+            .exec();
+        data.sort((a, b) => {
+            if (a.datetime > b.datetime)
+                return 1;
+            if (a.datetime < b.datetime)
+                return -1;
+            return 0;
+        });
+        return { payload: data };
+    }
+    async findTokenPriceRankByDatetime(market, hours, datetime) {
+        const { year, month, date, hour } = (0, datetime_1.convertDatetime)(new Date(datetime));
+        let baseTime;
+        switch (hours) {
+            case 1:
+                baseTime = new Date(year, month, date - 1, hour);
+                break;
+            case 2:
+                baseTime = new Date(year, month, date - 2, hour);
+                break;
+            case 4:
+                baseTime = new Date(year, month, date - 4, hour);
+                break;
+            case 8:
+                baseTime = new Date(year, month, date - 8, hour);
+                break;
+            case 12:
+                baseTime = new Date(year, month, date - 12, hour);
+                break;
+            case 24:
+                baseTime = new Date(year, month, date - 24, hour);
+                break;
+            default:
+                baseTime = new Date(year, month, date - 1, hour);
+                break;
+        }
+        const ISOBaseTime = new Date(baseTime);
+        const data = await this.tradeRankModel
+            .find({
+            market,
+            unit: hours,
+            datetime: { $lte: datetime, $gte: ISOBaseTime },
+        }, {
+            _id: 0,
+            unit: 1,
+            market: 1,
+            datetime: 1,
+            priceSum: 1,
+            priceSumRank: 1,
+            priceDiffRank: 1,
+            priceDiffRateRank: 1,
+        })
+            .sort({ datetime: -1 })
+            .limit(24)
+            .exec();
+        data.sort((a, b) => {
+            if (a.datetime > b.datetime)
+                return 1;
+            if (a.datetime < b.datetime)
+                return -1;
+            return 0;
+        });
+        return { payload: data };
+    }
+};
+ChartService = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, mongoose_1.InjectModel)(tradeRank_schema_1.TradeRank.name)),
+    __metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
+], ChartService);
+exports.ChartService = ChartService;
 
 
 /***/ }),
@@ -562,6 +813,32 @@ TradeRank = __decorate([
 ], TradeRank);
 exports.TradeRank = TradeRank;
 exports.TradeRankSchema = mongoose_1.SchemaFactory.createForClass(TradeRank);
+
+
+/***/ }),
+
+/***/ "./libs/utils/src/datetime.ts":
+/*!************************************!*\
+  !*** ./libs/utils/src/datetime.ts ***!
+  \************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.convertDatetime = void 0;
+const convertDatetime = (datetime) => {
+    const year = datetime.getFullYear();
+    const month = datetime.getMonth();
+    const date = datetime.getDate();
+    const hour = datetime.getHours();
+    return {
+        year,
+        month,
+        date,
+        hour,
+    };
+};
+exports.convertDatetime = convertDatetime;
 
 
 /***/ }),

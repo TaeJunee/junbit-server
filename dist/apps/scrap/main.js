@@ -26,7 +26,7 @@ const database_module_1 = __webpack_require__(5);
 const minuteCandle_module_1 = __webpack_require__(7);
 const scrap_service_1 = __webpack_require__(18);
 const minuteCandle_service_1 = __webpack_require__(8);
-const upbit_1 = __webpack_require__(11);
+const upbit_1 = __webpack_require__(12);
 let ScrapModule = class ScrapModule {
 };
 ScrapModule = __decorate([
@@ -119,8 +119,8 @@ const common_1 = __webpack_require__(3);
 const mongoose_1 = __webpack_require__(6);
 const minuteCandle_service_1 = __webpack_require__(8);
 const minuteCandle_schema_1 = __webpack_require__(10);
-const tradeRank_schema_1 = __webpack_require__(16);
-const upbit_1 = __webpack_require__(11);
+const tradeRank_schema_1 = __webpack_require__(11);
+const upbit_1 = __webpack_require__(12);
 let MinuteCandleModule = class MinuteCandleModule {
 };
 MinuteCandleModule = __decorate([
@@ -169,11 +169,11 @@ const common_1 = __webpack_require__(3);
 const mongoose_1 = __webpack_require__(6);
 const mongoose_2 = __webpack_require__(9);
 const minuteCandle_schema_1 = __webpack_require__(10);
-const upbit_1 = __webpack_require__(11);
-const sleep_1 = __webpack_require__(13);
-const tokens_1 = __webpack_require__(14);
-const datetime_1 = __webpack_require__(15);
-const tradeRank_schema_1 = __webpack_require__(16);
+const tradeRank_schema_1 = __webpack_require__(11);
+const upbit_1 = __webpack_require__(12);
+const sleep_1 = __webpack_require__(14);
+const tokens_1 = __webpack_require__(15);
+const datetime_1 = __webpack_require__(16);
 const lodash_1 = __webpack_require__(17);
 let MinuteCandleService = class MinuteCandleService {
     constructor(minuteCandleModel, tradeRankModel, upbit) {
@@ -181,10 +181,10 @@ let MinuteCandleService = class MinuteCandleService {
         this.tradeRankModel = tradeRankModel;
         this.upbit = upbit;
     }
-    async create(unit, count) {
+    async create(unit, to) {
         var _a, e_1, _b, _c;
-        console.log(`Saving MinuteCandles`);
         let i = 1;
+        const array = [];
         try {
             for (var _d = true, krwTokens_1 = __asyncValues(tokens_1.krwTokens), krwTokens_1_1; krwTokens_1_1 = await krwTokens_1.next(), _a = krwTokens_1_1.done, !_a;) {
                 _c = krwTokens_1_1.value;
@@ -192,64 +192,28 @@ let MinuteCandleService = class MinuteCandleService {
                 try {
                     let token = _c;
                     const start = Date.now();
-                    await this.upbit
-                        .getMinuteCandle(unit, token.market, count)
-                        .then(async (res) => {
-                        var _a, e_2, _b, _c;
-                        console.log(res[0].market, res[0].candle_date_time_kst);
-                        const reversedResponses = res.reverse();
-                        try {
-                            for (var _d = true, reversedResponses_1 = __asyncValues(reversedResponses), reversedResponses_1_1; reversedResponses_1_1 = await reversedResponses_1.next(), _a = reversedResponses_1_1.done, !_a;) {
-                                _c = reversedResponses_1_1.value;
-                                _d = false;
-                                try {
-                                    let response = _c;
-                                    if (reversedResponses.indexOf(response) ===
-                                        reversedResponses.length - 1) {
-                                    }
-                                    else {
-                                        await this.minuteCandleModel
-                                            .findOne({
-                                            market: response.market,
-                                            timestamp: response.timestamp,
-                                        })
-                                            .then(async (res) => {
-                                            if (res) {
-                                            }
-                                            else {
-                                                const tokenCandle = new this.minuteCandleModel({
-                                                    market: response.market,
-                                                    candle_date_time_utc: new Date(`${response.candle_date_time_utc}.000Z`),
-                                                    timestamp: response.timestamp,
-                                                    candle_acc_trade_price: response.candle_acc_trade_price,
-                                                    candle_acc_trade_volume: response.candle_acc_trade_volume,
-                                                    unit: response.unit,
-                                                });
-                                                await tokenCandle.save();
-                                            }
-                                        });
-                                    }
-                                }
-                                finally {
-                                    _d = true;
-                                }
-                            }
-                        }
-                        catch (e_2_1) { e_2 = { error: e_2_1 }; }
-                        finally {
-                            try {
-                                if (!_d && !_a && (_b = reversedResponses_1.return)) await _b.call(reversedResponses_1);
-                            }
-                            finally { if (e_2) throw e_2.error; }
-                        }
-                    })
-                        .then(async () => {
-                        const now = Date.now();
-                        if (i % 10 === 0 && now - start < 1000) {
-                            await (0, sleep_1.sleep)(1200 - (now - start));
-                        }
-                        i++;
-                    });
+                    const response = await this.upbit.getMinuteCandle(unit, token.market, to);
+                    const exist = await this.minuteCandleModel.findOne({ timestamp: response[0].timestamp });
+                    if (exist) {
+                        return;
+                    }
+                    const obj = {};
+                    const res = response[0];
+                    obj['market'] = res.market;
+                    obj['candle_date_time_utc'] = `${res.candle_date_time_utc}.000Z`;
+                    obj['timestamp'] = res.timestamp;
+                    obj['candle_acc_trade_price'] = res.candle_acc_trade_price;
+                    obj['candle_acc_trade_volume'] = res.candle_acc_trade_volume;
+                    obj['unit'] = res.unit;
+                    array.push(obj);
+                    const now = Date.now();
+                    if (i % 10 === 0 && now - start < 1000) {
+                        await (0, sleep_1.sleep)(1100 - (now - start));
+                    }
+                    if (i === 115 && now - start < 1000) {
+                        await (0, sleep_1.sleep)(1100 - (now - start));
+                    }
+                    i++;
                 }
                 finally {
                     _d = true;
@@ -263,12 +227,17 @@ let MinuteCandleService = class MinuteCandleService {
             }
             finally { if (e_1) throw e_1.error; }
         }
-        console.log('DONE');
+        try {
+            await this.minuteCandleModel.insertMany(array);
+        }
+        catch (e) {
+            throw new Error(e);
+        }
     }
     async delete(datetime) {
         console.log('Deleteing MinuteCandles');
         const { year, month, date, hour } = (0, datetime_1.convertDatetime)(datetime);
-        const baseTime = new Date(year, month, date - 14, hour).toISOString();
+        const baseTime = new Date(year, month, date - 25, hour).toISOString();
         const ISOBaseTime = new Date(baseTime);
         await this.minuteCandleModel.deleteMany({
             candle_date_time_utc: { $lt: ISOBaseTime },
@@ -292,7 +261,7 @@ let MinuteCandleService = class MinuteCandleService {
         return result;
     }
     async calculate(hours, datetime) {
-        var _a, e_3, _b, _c;
+        var _a, e_2, _b, _c;
         let array = [];
         try {
             for (var _d = true, krwTokens_2 = __asyncValues(tokens_1.krwTokens), krwTokens_2_1; krwTokens_2_1 = await krwTokens_2.next(), _a = krwTokens_2_1.done, !_a;) {
@@ -335,18 +304,18 @@ let MinuteCandleService = class MinuteCandleService {
                 }
             }
         }
-        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
         finally {
             try {
                 if (!_d && !_a && (_b = krwTokens_2.return)) await _b.call(krwTokens_2);
             }
-            finally { if (e_3) throw e_3.error; }
+            finally { if (e_2) throw e_2.error; }
         }
         return array;
     }
     async saveRankData(hours, datetime) {
-        var _a, e_4, _b, _c;
-        console.log("SAVING RANK DATA UNIT::: ", hours, "DATETIME::: ", datetime);
+        var _a, e_3, _b, _c;
+        console.log('SAVING RANK DATA UNIT::: ', hours, 'DATETIME::: ', datetime);
         const { year, month, date, hour } = (0, datetime_1.convertDatetime)(datetime);
         const newDatetime = new Date(year, month, date, hour).toISOString();
         const ISONewDatetime = new Date(newDatetime);
@@ -370,26 +339,24 @@ let MinuteCandleService = class MinuteCandleService {
                 _d = false;
                 try {
                     let item = _c;
-                    const exist = await this.tradeRankModel
-                        .findOne({
+                    const exist = await this.tradeRankModel.findOne({
                         market: item.market,
                         datetime: item.datetime,
-                        unit: hours
+                        unit: hours,
                     });
-                    if (exist) { }
+                    if (exist) {
+                    }
                     else {
                         let obj = {};
-                        const prevData = await this.tradeRankModel
-                            .findOne({
+                        const prevData = await this.tradeRankModel.findOne({
                             market: item.market,
                             datetime: ISOPrevTime,
-                            unit: hours
+                            unit: hours,
                         });
-                        const prevDayData = await this.tradeRankModel
-                            .findOne({
+                        const prevDayData = await this.tradeRankModel.findOne({
                             market: item.market,
                             datetime: ISOPrevDay,
-                            unit: hours
+                            unit: hours,
                         });
                         obj['market'] = item.market;
                         obj['volumeSum'] = item[`volumeSum${hours}H`];
@@ -434,12 +401,12 @@ let MinuteCandleService = class MinuteCandleService {
                 }
             }
         }
-        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
         finally {
             try {
                 if (!_d && !_a && (_b = data_1.return)) await _b.call(data_1);
             }
-            finally { if (e_4) throw e_4.error; }
+            finally { if (e_3) throw e_3.error; }
         }
         try {
             await this.tradeRankModel.insertMany(array);
@@ -478,7 +445,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MinuteCandleSchema = exports.MinuteCandle = void 0;
 const mongoose_1 = __webpack_require__(6);
@@ -490,7 +456,7 @@ __decorate([
 ], MinuteCandle.prototype, "market", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
-    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+    __metadata("design:type", String)
 ], MinuteCandle.prototype, "candle_date_time_utc", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
@@ -517,779 +483,6 @@ exports.MinuteCandleSchema = mongoose_1.SchemaFactory.createForClass(MinuteCandl
 
 /***/ }),
 /* 11 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Upbit = void 0;
-const axios_1 = __webpack_require__(12);
-class Upbit {
-    constructor() {
-        this.baseURL = 'https://api.upbit.com/v1';
-        this.options = { method: 'GET', headers: { accept: 'application/json' } };
-    }
-    async getMinuteCandle(unit, market, count = 10) {
-        try {
-            const response = await axios_1.default.get(`${this.baseURL}/candles/minutes/${unit}?market=${market}&count=${count}`, this.options);
-            return response.data;
-        }
-        catch (e) {
-            throw Error(e);
-        }
-    }
-    async getTicker(markets) {
-        try {
-            const response = await axios_1.default.get(`${this.baseURL}/ticker?markets=${markets}`, this.options);
-            return response.data;
-        }
-        catch (e) {
-            throw Error(e);
-        }
-    }
-}
-exports.Upbit = Upbit;
-
-
-/***/ }),
-/* 12 */
-/***/ ((module) => {
-
-module.exports = require("axios");
-
-/***/ }),
-/* 13 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.sleep = void 0;
-const sleep = (ms) => {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-};
-exports.sleep = sleep;
-
-
-/***/ }),
-/* 14 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.markets = exports.krwTokens = void 0;
-exports.krwTokens = [
-    {
-        market: 'KRW-BTC',
-        kr_name: '비트코인',
-        en_name: 'bitcoin',
-    },
-    {
-        market: 'KRW-ETH',
-        kr_name: '이더리움',
-        en_name: 'ethereum',
-    },
-    {
-        market: 'KRW-NEO',
-        kr_name: '네오',
-        en_name: 'neo',
-    },
-    {
-        market: 'KRW-MTL',
-        kr_name: '메탈',
-        en_name: 'metal',
-    },
-    {
-        market: 'KRW-XRP',
-        kr_name: '리플',
-        en_name: 'ripple',
-    },
-    {
-        market: 'KRW-ETC',
-        kr_name: '이더리움클래식',
-        en_name: 'ethereum_classic',
-    },
-    {
-        market: 'KRW-OMG',
-        kr_name: '오미세고',
-        en_name: 'omisego',
-    },
-    {
-        market: 'KRW-SNT',
-        kr_name: '스테이터스네트워크토큰',
-        en_name: 'status_network_token',
-    },
-    {
-        market: 'KRW-WAVES',
-        kr_name: '웨이브',
-        en_name: 'waves',
-    },
-    {
-        market: 'KRW-XEM',
-        kr_name: '넴',
-        en_name: 'nem',
-    },
-    {
-        market: 'KRW-QTUM',
-        kr_name: '퀀텀',
-        en_name: 'qtum',
-    },
-    {
-        market: 'KRW-LSK',
-        kr_name: '리스크',
-        en_name: 'lisk',
-    },
-    {
-        market: 'KRW-STEEM',
-        kr_name: '스팀',
-        en_name: 'steem',
-    },
-    {
-        market: 'KRW-XLM',
-        kr_name: '스텔라루멘',
-        en_name: 'lumen',
-    },
-    {
-        market: 'KRW-ARDR',
-        kr_name: '아더',
-        en_name: 'ardor',
-    },
-    {
-        market: 'KRW-ARK',
-        kr_name: '아크',
-        en_name: 'ark',
-    },
-    {
-        market: 'KRW-STORJ',
-        kr_name: '스토리지',
-        en_name: 'storj',
-    },
-    {
-        market: 'KRW-GRS',
-        kr_name: '그로스톨코인',
-        en_name: 'groestlcoin',
-    },
-    {
-        market: 'KRW-REP',
-        kr_name: '어거',
-        en_name: 'augur',
-    },
-    {
-        market: 'KRW-ADA',
-        kr_name: '에이다',
-        en_name: 'ada',
-    },
-    {
-        market: 'KRW-SBD',
-        kr_name: '스팀달러',
-        en_name: 'steemdollars',
-    },
-    {
-        market: 'KRW-POWR',
-        kr_name: '파워렛저',
-        en_name: 'power_ledger',
-    },
-    {
-        market: 'KRW-BTG',
-        kr_name: '비트코인골드',
-        en_name: 'bitcoin_gold',
-    },
-    {
-        market: 'KRW-ICX',
-        kr_name: '아이콘',
-        en_name: 'icon',
-    },
-    {
-        market: 'KRW-EOS',
-        kr_name: '이오스',
-        en_name: 'eos',
-    },
-    {
-        market: 'KRW-TRX',
-        kr_name: '트론',
-        en_name: 'tron',
-    },
-    {
-        market: 'KRW-SC',
-        kr_name: '시아코인',
-        en_name: 'siacoin',
-    },
-    {
-        market: 'KRW-ONT',
-        kr_name: '온톨로지',
-        en_name: 'ontology',
-    },
-    {
-        market: 'KRW-ZIL',
-        kr_name: '질리카',
-        en_name: 'zilliqa',
-    },
-    {
-        market: 'KRW-POLYX',
-        kr_name: '폴리매쉬',
-        en_name: 'polymesh',
-    },
-    {
-        market: 'KRW-ZRX',
-        kr_name: '제로엑스',
-        en_name: '0x_protocol',
-    },
-    {
-        market: 'KRW-LOOM',
-        kr_name: '룸네트워크',
-        en_name: 'loom_network',
-    },
-    {
-        market: 'KRW-BCH',
-        kr_name: '비트코인캐시',
-        en_name: 'bitcoin_cash',
-    },
-    {
-        market: 'KRW-BAT',
-        kr_name: '베이직어텐션토큰',
-        en_name: 'basic_attention_token',
-    },
-    {
-        market: 'KRW-IOST',
-        kr_name: '아이오에스티',
-        en_name: 'iost',
-    },
-    {
-        market: 'KRW-RFR',
-        kr_name: '리퍼리움',
-        en_name: 'refereum',
-    },
-    {
-        market: 'KRW-CVC',
-        kr_name: '시빅',
-        en_name: 'civic',
-    },
-    {
-        market: 'KRW-IQ',
-        kr_name: '아이큐',
-        en_name: 'iq_wiki',
-    },
-    {
-        market: 'KRW-IOTA',
-        kr_name: '아이오타',
-        en_name: 'iota',
-    },
-    {
-        market: 'KRW-HIFI',
-        kr_name: '하이파이',
-        en_name: 'hifi_finance',
-    },
-    {
-        market: 'KRW-ONG',
-        kr_name: '온톨로지가스',
-        en_name: 'ong',
-    },
-    {
-        market: 'KRW-GAS',
-        kr_name: '가스',
-        en_name: 'gas',
-    },
-    {
-        market: 'KRW-UPP',
-        kr_name: '센티넬프로토콜',
-        en_name: 'sentinel_protocol',
-    },
-    {
-        market: 'KRW-ELF',
-        kr_name: '엘프',
-        en_name: 'aelf',
-    },
-    {
-        market: 'KRW-KNC',
-        kr_name: '카이버네트워크',
-        en_name: 'kyber_network',
-    },
-    {
-        market: 'KRW-BSV',
-        kr_name: '비트코인에스브이',
-        en_name: 'bitcoin_sv',
-    },
-    {
-        market: 'KRW-THETA',
-        kr_name: '쎄타토큰',
-        en_name: 'theta_token',
-    },
-    {
-        market: 'KRW-QKC',
-        kr_name: '쿼크체인',
-        en_name: 'quarkchain',
-    },
-    {
-        market: 'KRW-BTT',
-        kr_name: '비트토렌트',
-        en_name: 'bittorrent',
-    },
-    {
-        market: 'KRW-MOC',
-        kr_name: '모스코인',
-        en_name: 'moss_coin',
-    },
-    {
-        market: 'KRW-ENJ',
-        kr_name: '엔진코인',
-        en_name: 'enjin',
-    },
-    {
-        market: 'KRW-TFUEL',
-        kr_name: '쎄타퓨엘',
-        en_name: 'theta_fuel',
-    },
-    {
-        market: 'KRW-MANA',
-        kr_name: '디센트럴랜드',
-        en_name: 'decentraland',
-    },
-    {
-        market: 'KRW-ANKR',
-        kr_name: '앵커',
-        en_name: 'ankr',
-    },
-    {
-        market: 'KRW-AERGO',
-        kr_name: '아르고',
-        en_name: 'aergo',
-    },
-    {
-        market: 'KRW-ATOM',
-        kr_name: '코스모스',
-        en_name: 'cosmos',
-    },
-    {
-        market: 'KRW-TT',
-        kr_name: '썬더코어',
-        en_name: 'thundercore',
-    },
-    {
-        market: 'KRW-CRE',
-        kr_name: '캐리프로토콜',
-        en_name: 'carry_protocol',
-    },
-    {
-        market: 'KRW-MBL',
-        kr_name: '무비블록',
-        en_name: 'moviebloc',
-    },
-    {
-        market: 'KRW-WAXP',
-        kr_name: '왁스',
-        en_name: 'wax',
-    },
-    {
-        market: 'KRW-HBAR',
-        kr_name: '헤데라',
-        en_name: 'hedera',
-    },
-    {
-        market: 'KRW-MED',
-        kr_name: '메디블록',
-        en_name: 'medibloc',
-    },
-    {
-        market: 'KRW-MLK',
-        kr_name: '밀크',
-        en_name: 'mil_k',
-    },
-    {
-        market: 'KRW-STPT',
-        kr_name: '에스티피',
-        en_name: 'standard_tokenization_protocol',
-    },
-    {
-        market: 'KRW-ORBS',
-        kr_name: '오브스',
-        en_name: 'orbs',
-    },
-    {
-        market: 'KRW-VET',
-        kr_name: '비체인',
-        en_name: 'vechain',
-    },
-    {
-        market: 'KRW-CHZ',
-        kr_name: '칠리즈',
-        en_name: 'chiliz',
-    },
-    {
-        market: 'KRW-STMX',
-        kr_name: '스톰엑스',
-        en_name: 'stormx',
-    },
-    {
-        market: 'KRW-DKA',
-        kr_name: '디카르고',
-        en_name: 'dkargo',
-    },
-    {
-        market: 'KRW-HIVE',
-        kr_name: '하이브',
-        en_name: 'hive',
-    },
-    {
-        market: 'KRW-KAVA',
-        kr_name: '카바',
-        en_name: 'kava',
-    },
-    {
-        market: 'KRW-AHT',
-        kr_name: '아하토큰',
-        en_name: 'ahatoken',
-    },
-    {
-        market: 'KRW-LINK',
-        kr_name: '체인링크',
-        en_name: 'chainlink',
-    },
-    {
-        market: 'KRW-XTZ',
-        kr_name: '테조스',
-        en_name: 'tezos',
-    },
-    {
-        market: 'KRW-BORA',
-        kr_name: '보라',
-        en_name: 'bora',
-    },
-    {
-        market: 'KRW-JST',
-        kr_name: '저스트',
-        en_name: 'just',
-    },
-    {
-        market: 'KRW-CRO',
-        kr_name: '크로노스',
-        en_name: 'cronos',
-    },
-    {
-        market: 'KRW-TON',
-        kr_name: '톤',
-        en_name: 'ton',
-    },
-    {
-        market: 'KRW-SXP',
-        kr_name: '솔라',
-        en_name: 'sxp',
-    },
-    {
-        market: 'KRW-HUNT',
-        kr_name: '헌트',
-        en_name: 'hunt',
-    },
-    {
-        market: 'KRW-PLA',
-        kr_name: '플레이댑',
-        en_name: 'playdapp',
-    },
-    {
-        market: 'KRW-DOT',
-        kr_name: '폴카닷',
-        en_name: 'polkadot',
-    },
-    {
-        market: 'KRW-SRM',
-        kr_name: '세럼',
-        en_name: 'serum',
-    },
-    {
-        market: 'KRW-MVL',
-        kr_name: '엠블',
-        en_name: 'mvl',
-    },
-    {
-        market: 'KRW-STRAX',
-        kr_name: '스트라티스',
-        en_name: 'stratis',
-    },
-    {
-        market: 'KRW-AQT',
-        kr_name: '알파쿼크',
-        en_name: 'alpha_quark_token',
-    },
-    {
-        market: 'KRW-GLM',
-        kr_name: '골렘',
-        en_name: 'golem',
-    },
-    {
-        market: 'KRW-SSX',
-        kr_name: '썸씽',
-        en_name: 'somesing',
-    },
-    {
-        market: 'KRW-META',
-        kr_name: '메타디움',
-        en_name: 'metadium',
-    },
-    {
-        market: 'KRW-FCT2',
-        kr_name: '피르마체인',
-        en_name: 'firmachain',
-    },
-    {
-        market: 'KRW-CBK',
-        kr_name: '코박토큰',
-        en_name: 'cobak_token',
-    },
-    {
-        market: 'KRW-SAND',
-        kr_name: '샌드박스',
-        en_name: 'the_sandbox',
-    },
-    {
-        market: 'KRW-HUM',
-        kr_name: '휴먼스케이프',
-        en_name: 'humanscape',
-    },
-    {
-        market: 'KRW-DOGE',
-        kr_name: '도지코인',
-        en_name: 'dogecoin',
-    },
-    {
-        market: 'KRW-STRK',
-        kr_name: '스트라이크',
-        en_name: 'strike',
-    },
-    {
-        market: 'KRW-PUNDIX',
-        kr_name: '펀디엑스',
-        en_name: 'pundi_x',
-    },
-    {
-        market: 'KRW-FLOW',
-        kr_name: '플로우',
-        en_name: 'flow',
-    },
-    {
-        market: 'KRW-DAWN',
-        kr_name: '던프로토콜',
-        en_name: 'dawn_protocol',
-    },
-    {
-        market: 'KRW-AXS',
-        kr_name: '엑시인피니티',
-        en_name: 'axie_infinity',
-    },
-    {
-        market: 'KRW-STX',
-        kr_name: '스택스',
-        en_name: 'stacks',
-    },
-    {
-        market: 'KRW-XEC',
-        kr_name: '이캐시',
-        en_name: 'ecash',
-    },
-    {
-        market: 'KRW-SOL',
-        kr_name: '솔라나',
-        en_name: 'solana',
-    },
-    {
-        market: 'KRW-MATIC',
-        kr_name: '폴리곤',
-        en_name: 'polygon',
-    },
-    {
-        market: 'KRW-NU',
-        kr_name: '누사이퍼',
-        en_name: 'nucypher',
-    },
-    {
-        market: 'KRW-AAVE',
-        kr_name: '에이브',
-        en_name: 'aave',
-    },
-    {
-        market: 'KRW-1INCH',
-        kr_name: '1인치네트워크',
-        en_name: '1inch_network',
-    },
-    {
-        market: 'KRW-ALGO',
-        kr_name: '알고랜드',
-        en_name: 'algorand',
-    },
-    {
-        market: 'KRW-NEAR',
-        kr_name: '니어프로토콜',
-        en_name: 'near_protocol',
-    },
-    {
-        market: 'KRW-AVAX',
-        kr_name: '아발란체',
-        en_name: 'avalanche',
-    },
-    {
-        market: 'KRW-T',
-        kr_name: '쓰레스홀드',
-        en_name: 'threshold',
-    },
-    {
-        market: 'KRW-CELO',
-        kr_name: '셀로',
-        en_name: 'celo',
-    },
-    {
-        market: 'KRW-GMT',
-        kr_name: '스테픈',
-        en_name: 'stepn',
-    },
-    {
-        market: 'KRW-APT',
-        kr_name: '앱토스',
-        en_name: 'aptos',
-    },
-    {
-        market: 'KRW-SHIB',
-        kr_name: '시바이누',
-        en_name: 'shiba_inu',
-    },
-];
-exports.markets = [
-    'KRW-BTC',
-    'KRW-ETH',
-    'KRW-NEO',
-    'KRW-MTL',
-    'KRW-XRP',
-    'KRW-ETC',
-    'KRW-OMG',
-    'KRW-SNT',
-    'KRW-WAVES',
-    'KRW-XEM',
-    'KRW-QTUM',
-    'KRW-LSK',
-    'KRW-STEEM',
-    'KRW-XLM',
-    'KRW-ARDR',
-    'KRW-ARK',
-    'KRW-STORJ',
-    'KRW-GRS',
-    'KRW-REP',
-    'KRW-ADA',
-    'KRW-SBD',
-    'KRW-POWR',
-    'KRW-BTG',
-    'KRW-ICX',
-    'KRW-EOS',
-    'KRW-TRX',
-    'KRW-SC',
-    'KRW-ONT',
-    'KRW-ZIL',
-    'KRW-POLYX',
-    'KRW-ZRX',
-    'KRW-LOOM',
-    'KRW-BCH',
-    'KRW-BAT',
-    'KRW-IOST',
-    'KRW-RFR',
-    'KRW-CVC',
-    'KRW-IQ',
-    'KRW-IOTA',
-    'KRW-HIFI',
-    'KRW-ONG',
-    'KRW-GAS',
-    'KRW-UPP',
-    'KRW-ELF',
-    'KRW-KNC',
-    'KRW-BSV',
-    'KRW-THETA',
-    'KRW-QKC',
-    'KRW-BTT',
-    'KRW-MOC',
-    'KRW-ENJ',
-    'KRW-TFUEL',
-    'KRW-MANA',
-    'KRW-ANKR',
-    'KRW-AERGO',
-    'KRW-ATOM',
-    'KRW-TT',
-    'KRW-CRE',
-    'KRW-MBL',
-    'KRW-WAXP',
-    'KRW-HBAR',
-    'KRW-MED',
-    'KRW-MLK',
-    'KRW-STPT',
-    'KRW-ORBS',
-    'KRW-VET',
-    'KRW-CHZ',
-    'KRW-STMX',
-    'KRW-DKA',
-    'KRW-HIVE',
-    'KRW-KAVA',
-    'KRW-AHT',
-    'KRW-LINK',
-    'KRW-XTZ',
-    'KRW-BORA',
-    'KRW-JST',
-    'KRW-CRO',
-    'KRW-TON',
-    'KRW-SXP',
-    'KRW-HUNT',
-    'KRW-PLA',
-    'KRW-DOT',
-    'KRW-SRM',
-    'KRW-MVL',
-    'KRW-STRAX',
-    'KRW-AQT',
-    'KRW-GLM',
-    'KRW-SSX',
-    'KRW-META',
-    'KRW-FCT2',
-    'KRW-CBK',
-    'KRW-SAND',
-    'KRW-HUM',
-    'KRW-DOGE',
-    'KRW-STRK',
-    'KRW-PUNDIX',
-    'KRW-FLOW',
-    'KRW-DAWN',
-    'KRW-AXS',
-    'KRW-STX',
-    'KRW-XEC',
-    'KRW-SOL',
-    'KRW-MATIC',
-    'KRW-NU',
-    'KRW-AAVE',
-    'KRW-1INCH',
-    'KRW-ALGO',
-    'KRW-NEAR',
-    'KRW-AVAX',
-    'KRW-T',
-    'KRW-CELO',
-    'KRW-GMT',
-    'KRW-APT',
-    'KRW-SHIB',
-];
-
-
-/***/ }),
-/* 15 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.convertDatetime = void 0;
-const convertDatetime = (datetime) => {
-    const year = datetime.getFullYear();
-    const month = datetime.getMonth();
-    const date = datetime.getDate();
-    const hour = datetime.getHours();
-    return {
-        year,
-        month,
-        date,
-        hour,
-    };
-};
-exports.convertDatetime = convertDatetime;
-
-
-/***/ }),
-/* 16 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1396,6 +589,785 @@ exports.TradeRankSchema = mongoose_1.SchemaFactory.createForClass(TradeRank);
 
 
 /***/ }),
+/* 12 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Upbit = void 0;
+const axios_1 = __webpack_require__(13);
+class Upbit {
+    constructor() {
+        this.BASE_URL = 'https://api.upbit.com/v1';
+        this.options = { method: 'GET', headers: { accept: 'application/json' } };
+    }
+    async getMinuteCandle(unit, market, to, count = 1) {
+        try {
+            const response = await axios_1.default.get(`${this.BASE_URL}/candles/minutes/${unit}?market=${market}&to=${to}&count=${count}`, this.options);
+            return response.data;
+        }
+        catch (e) {
+            throw Error(e);
+        }
+    }
+    async getTicker(markets) {
+        try {
+            const response = await axios_1.default.get(`${this.BASE_URL}/ticker?markets=${markets}`, this.options);
+            return response.data;
+        }
+        catch (e) {
+            throw Error(e);
+        }
+    }
+}
+exports.Upbit = Upbit;
+
+
+/***/ }),
+/* 13 */
+/***/ ((module) => {
+
+module.exports = require("axios");
+
+/***/ }),
+/* 14 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.sleep = void 0;
+const sleep = (ms) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};
+exports.sleep = sleep;
+
+
+/***/ }),
+/* 15 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.markets = exports.krwTokens = void 0;
+exports.krwTokens = [
+    {
+        "market": "KRW-BTC",
+        "korean_name": "비트코인",
+        "english_name": "Bitcoin"
+    },
+    {
+        "market": "KRW-ETH",
+        "korean_name": "이더리움",
+        "english_name": "Ethereum"
+    },
+    {
+        "market": "KRW-NEO",
+        "korean_name": "네오",
+        "english_name": "NEO"
+    },
+    {
+        "market": "KRW-MTL",
+        "korean_name": "메탈",
+        "english_name": "Metal"
+    },
+    {
+        "market": "KRW-XRP",
+        "korean_name": "리플",
+        "english_name": "Ripple"
+    },
+    {
+        "market": "KRW-ETC",
+        "korean_name": "이더리움클래식",
+        "english_name": "Ethereum Classic"
+    },
+    {
+        "market": "KRW-OMG",
+        "korean_name": "오미세고",
+        "english_name": "OmiseGo"
+    },
+    {
+        "market": "KRW-SNT",
+        "korean_name": "스테이터스네트워크토큰",
+        "english_name": "Status Network Token"
+    },
+    {
+        "market": "KRW-WAVES",
+        "korean_name": "웨이브",
+        "english_name": "Waves"
+    },
+    {
+        "market": "KRW-XEM",
+        "korean_name": "넴",
+        "english_name": "NEM"
+    },
+    {
+        "market": "KRW-QTUM",
+        "korean_name": "퀀텀",
+        "english_name": "Qtum"
+    },
+    {
+        "market": "KRW-LSK",
+        "korean_name": "리스크",
+        "english_name": "Lisk"
+    },
+    {
+        "market": "KRW-STEEM",
+        "korean_name": "스팀",
+        "english_name": "Steem"
+    },
+    {
+        "market": "KRW-XLM",
+        "korean_name": "스텔라루멘",
+        "english_name": "Lumen"
+    },
+    {
+        "market": "KRW-ARDR",
+        "korean_name": "아더",
+        "english_name": "Ardor"
+    },
+    {
+        "market": "KRW-ARK",
+        "korean_name": "아크",
+        "english_name": "Ark"
+    },
+    {
+        "market": "KRW-STORJ",
+        "korean_name": "스토리지",
+        "english_name": "Storj"
+    },
+    {
+        "market": "KRW-GRS",
+        "korean_name": "그로스톨코인",
+        "english_name": "Groestlcoin"
+    },
+    {
+        "market": "KRW-REP",
+        "korean_name": "어거",
+        "english_name": "Augur"
+    },
+    {
+        "market": "KRW-ADA",
+        "korean_name": "에이다",
+        "english_name": "Ada"
+    },
+    {
+        "market": "KRW-SBD",
+        "korean_name": "스팀달러",
+        "english_name": "SteemDollars"
+    },
+    {
+        "market": "KRW-POWR",
+        "korean_name": "파워렛저",
+        "english_name": "Power ledger"
+    },
+    {
+        "market": "KRW-BTG",
+        "korean_name": "비트코인골드",
+        "english_name": "Bitcoin Gold"
+    },
+    {
+        "market": "KRW-ICX",
+        "korean_name": "아이콘",
+        "english_name": "Icon"
+    },
+    {
+        "market": "KRW-EOS",
+        "korean_name": "이오스",
+        "english_name": "EOS"
+    },
+    {
+        "market": "KRW-TRX",
+        "korean_name": "트론",
+        "english_name": "TRON"
+    },
+    {
+        "market": "KRW-SC",
+        "korean_name": "시아코인",
+        "english_name": "Siacoin"
+    },
+    {
+        "market": "KRW-ONT",
+        "korean_name": "온톨로지",
+        "english_name": "Ontology"
+    },
+    {
+        "market": "KRW-ZIL",
+        "korean_name": "질리카",
+        "english_name": "Zilliqa"
+    },
+    {
+        "market": "KRW-POLYX",
+        "korean_name": "폴리매쉬",
+        "english_name": "Polymesh"
+    },
+    {
+        "market": "KRW-ZRX",
+        "korean_name": "제로엑스",
+        "english_name": "0x Protocol"
+    },
+    {
+        "market": "KRW-LOOM",
+        "korean_name": "룸네트워크",
+        "english_name": "Loom Network"
+    },
+    {
+        "market": "KRW-BCH",
+        "korean_name": "비트코인캐시",
+        "english_name": "Bitcoin Cash"
+    },
+    {
+        "market": "KRW-BAT",
+        "korean_name": "베이직어텐션토큰",
+        "english_name": "Basic Attention Token"
+    },
+    {
+        "market": "KRW-IOST",
+        "korean_name": "아이오에스티",
+        "english_name": "IOST"
+    },
+    {
+        "market": "KRW-RFR",
+        "korean_name": "리퍼리움",
+        "english_name": "Refereum"
+    },
+    {
+        "market": "KRW-CVC",
+        "korean_name": "시빅",
+        "english_name": "Civic"
+    },
+    {
+        "market": "KRW-IQ",
+        "korean_name": "아이큐",
+        "english_name": "IQ.wiki"
+    },
+    {
+        "market": "KRW-IOTA",
+        "korean_name": "아이오타",
+        "english_name": "IOTA"
+    },
+    {
+        "market": "KRW-HIFI",
+        "korean_name": "하이파이",
+        "english_name": "Hifi Finance"
+    },
+    {
+        "market": "KRW-ONG",
+        "korean_name": "온톨로지가스",
+        "english_name": "ONG"
+    },
+    {
+        "market": "KRW-GAS",
+        "korean_name": "가스",
+        "english_name": "GAS"
+    },
+    {
+        "market": "KRW-UPP",
+        "korean_name": "센티넬프로토콜",
+        "english_name": "Sentinel Protocol"
+    },
+    {
+        "market": "KRW-ELF",
+        "korean_name": "엘프",
+        "english_name": "aelf"
+    },
+    {
+        "market": "KRW-KNC",
+        "korean_name": "카이버네트워크",
+        "english_name": "Kyber Network"
+    },
+    {
+        "market": "KRW-BSV",
+        "korean_name": "비트코인에스브이",
+        "english_name": "Bitcoin SV"
+    },
+    {
+        "market": "KRW-THETA",
+        "korean_name": "쎄타토큰",
+        "english_name": "Theta Token"
+    },
+    {
+        "market": "KRW-QKC",
+        "korean_name": "쿼크체인",
+        "english_name": "QuarkChain"
+    },
+    {
+        "market": "KRW-BTT",
+        "korean_name": "비트토렌트",
+        "english_name": "BitTorrent"
+    },
+    {
+        "market": "KRW-MOC",
+        "korean_name": "모스코인",
+        "english_name": "Moss Coin"
+    },
+    {
+        "market": "KRW-ENJ",
+        "korean_name": "엔진코인",
+        "english_name": "Enjin"
+    },
+    {
+        "market": "KRW-TFUEL",
+        "korean_name": "쎄타퓨엘",
+        "english_name": "Theta Fuel"
+    },
+    {
+        "market": "KRW-MANA",
+        "korean_name": "디센트럴랜드",
+        "english_name": "Decentraland"
+    },
+    {
+        "market": "KRW-ANKR",
+        "korean_name": "앵커",
+        "english_name": "Ankr"
+    },
+    {
+        "market": "KRW-AERGO",
+        "korean_name": "아르고",
+        "english_name": "Aergo"
+    },
+    {
+        "market": "KRW-ATOM",
+        "korean_name": "코스모스",
+        "english_name": "Cosmos"
+    },
+    {
+        "market": "KRW-TT",
+        "korean_name": "썬더코어",
+        "english_name": "ThunderCore"
+    },
+    {
+        "market": "KRW-CRE",
+        "korean_name": "캐리프로토콜",
+        "english_name": "Carry Protocol"
+    },
+    {
+        "market": "KRW-MBL",
+        "korean_name": "무비블록",
+        "english_name": "MovieBloc"
+    },
+    {
+        "market": "KRW-WAXP",
+        "korean_name": "왁스",
+        "english_name": "WAX"
+    },
+    {
+        "market": "KRW-HBAR",
+        "korean_name": "헤데라",
+        "english_name": "Hedera"
+    },
+    {
+        "market": "KRW-MED",
+        "korean_name": "메디블록",
+        "english_name": "MediBloc"
+    },
+    {
+        "market": "KRW-MLK",
+        "korean_name": "밀크",
+        "english_name": "MiL.k"
+    },
+    {
+        "market": "KRW-STPT",
+        "korean_name": "에스티피",
+        "english_name": "Standard Tokenization Protocol"
+    },
+    {
+        "market": "KRW-ORBS",
+        "korean_name": "오브스",
+        "english_name": "Orbs"
+    },
+    {
+        "market": "KRW-VET",
+        "korean_name": "비체인",
+        "english_name": "VeChain"
+    },
+    {
+        "market": "KRW-CHZ",
+        "korean_name": "칠리즈",
+        "english_name": "Chiliz"
+    },
+    {
+        "market": "KRW-STMX",
+        "korean_name": "스톰엑스",
+        "english_name": "StormX"
+    },
+    {
+        "market": "KRW-DKA",
+        "korean_name": "디카르고",
+        "english_name": "dKargo"
+    },
+    {
+        "market": "KRW-HIVE",
+        "korean_name": "하이브",
+        "english_name": "Hive"
+    },
+    {
+        "market": "KRW-KAVA",
+        "korean_name": "카바",
+        "english_name": "Kava"
+    },
+    {
+        "market": "KRW-AHT",
+        "korean_name": "아하토큰",
+        "english_name": "AhaToken"
+    },
+    {
+        "market": "KRW-LINK",
+        "korean_name": "체인링크",
+        "english_name": "Chainlink"
+    },
+    {
+        "market": "KRW-XTZ",
+        "korean_name": "테조스",
+        "english_name": "Tezos"
+    },
+    {
+        "market": "KRW-BORA",
+        "korean_name": "보라",
+        "english_name": "BORA"
+    },
+    {
+        "market": "KRW-JST",
+        "korean_name": "저스트",
+        "english_name": "JUST"
+    },
+    {
+        "market": "KRW-CRO",
+        "korean_name": "크로노스",
+        "english_name": "Cronos"
+    },
+    {
+        "market": "KRW-TON",
+        "korean_name": "톤",
+        "english_name": "TON"
+    },
+    {
+        "market": "KRW-SXP",
+        "korean_name": "솔라",
+        "english_name": "SXP"
+    },
+    {
+        "market": "KRW-HUNT",
+        "korean_name": "헌트",
+        "english_name": "HUNT"
+    },
+    {
+        "market": "KRW-PLA",
+        "korean_name": "플레이댑",
+        "english_name": "PlayDapp"
+    },
+    {
+        "market": "KRW-DOT",
+        "korean_name": "폴카닷",
+        "english_name": "Polkadot"
+    },
+    {
+        "market": "KRW-SRM",
+        "korean_name": "세럼",
+        "english_name": "Serum"
+    },
+    {
+        "market": "KRW-MVL",
+        "korean_name": "엠블",
+        "english_name": "MVL"
+    },
+    {
+        "market": "KRW-STRAX",
+        "korean_name": "스트라티스",
+        "english_name": "Stratis"
+    },
+    {
+        "market": "KRW-AQT",
+        "korean_name": "알파쿼크",
+        "english_name": "Alpha Quark Token"
+    },
+    {
+        "market": "KRW-GLM",
+        "korean_name": "골렘",
+        "english_name": "Golem"
+    },
+    {
+        "market": "KRW-SSX",
+        "korean_name": "썸씽",
+        "english_name": "SOMESING"
+    },
+    {
+        "market": "KRW-META",
+        "korean_name": "메타디움",
+        "english_name": "Metadium"
+    },
+    {
+        "market": "KRW-FCT2",
+        "korean_name": "피르마체인",
+        "english_name": "FirmaChain"
+    },
+    {
+        "market": "KRW-CBK",
+        "korean_name": "코박토큰",
+        "english_name": "Cobak Token"
+    },
+    {
+        "market": "KRW-SAND",
+        "korean_name": "샌드박스",
+        "english_name": "The Sandbox"
+    },
+    {
+        "market": "KRW-HUM",
+        "korean_name": "휴먼스케이프",
+        "english_name": "Humanscape"
+    },
+    {
+        "market": "KRW-DOGE",
+        "korean_name": "도지코인",
+        "english_name": "Dogecoin"
+    },
+    {
+        "market": "KRW-STRK",
+        "korean_name": "스트라이크",
+        "english_name": "Strike"
+    },
+    {
+        "market": "KRW-PUNDIX",
+        "korean_name": "펀디엑스",
+        "english_name": "Pundi X"
+    },
+    {
+        "market": "KRW-FLOW",
+        "korean_name": "플로우",
+        "english_name": "Flow"
+    },
+    {
+        "market": "KRW-DAWN",
+        "korean_name": "던프로토콜",
+        "english_name": "Dawn Protocol"
+    },
+    {
+        "market": "KRW-AXS",
+        "korean_name": "엑시인피니티",
+        "english_name": "Axie Infinity"
+    },
+    {
+        "market": "KRW-STX",
+        "korean_name": "스택스",
+        "english_name": "Stacks"
+    },
+    {
+        "market": "KRW-XEC",
+        "korean_name": "이캐시",
+        "english_name": "eCash"
+    },
+    {
+        "market": "KRW-SOL",
+        "korean_name": "솔라나",
+        "english_name": "Solana"
+    },
+    {
+        "market": "KRW-MATIC",
+        "korean_name": "폴리곤",
+        "english_name": "Polygon"
+    },
+    {
+        "market": "KRW-NU",
+        "korean_name": "누사이퍼",
+        "english_name": "Nucypher"
+    },
+    {
+        "market": "KRW-AAVE",
+        "korean_name": "에이브",
+        "english_name": "Aave"
+    },
+    {
+        "market": "KRW-1INCH",
+        "korean_name": "1인치네트워크",
+        "english_name": "1inch Network"
+    },
+    {
+        "market": "KRW-ALGO",
+        "korean_name": "알고랜드",
+        "english_name": "Algorand"
+    },
+    {
+        "market": "KRW-NEAR",
+        "korean_name": "니어프로토콜",
+        "english_name": "NEAR Protocol"
+    },
+    {
+        "market": "KRW-AVAX",
+        "korean_name": "아발란체",
+        "english_name": "Avalanche"
+    },
+    {
+        "market": "KRW-T",
+        "korean_name": "쓰레스홀드",
+        "english_name": "Threshold"
+    },
+    {
+        "market": "KRW-CELO",
+        "korean_name": "셀로",
+        "english_name": "Celo"
+    },
+    {
+        "market": "KRW-GMT",
+        "korean_name": "스테픈",
+        "english_name": "Stepn"
+    },
+    {
+        "market": "KRW-APT",
+        "korean_name": "앱토스",
+        "english_name": "Aptos"
+    },
+    {
+        "market": "KRW-SHIB",
+        "korean_name": "시바이누",
+        "english_name": "Shiba Inu"
+    },
+    {
+        "market": "KRW-MASK",
+        "korean_name": "마스크네트워크",
+        "english_name": "Mask Network"
+    },
+];
+exports.markets = [
+    "KRW-BTC",
+    "KRW-ETH",
+    "KRW-NEO",
+    "KRW-MTL",
+    "KRW-XRP",
+    "KRW-ETC",
+    "KRW-OMG",
+    "KRW-SNT",
+    "KRW-WAVES",
+    "KRW-XEM",
+    "KRW-QTUM",
+    "KRW-LSK",
+    "KRW-STEEM",
+    "KRW-XLM",
+    "KRW-ARDR",
+    "KRW-ARK",
+    "KRW-STORJ",
+    "KRW-GRS",
+    "KRW-REP",
+    "KRW-ADA",
+    "KRW-SBD",
+    "KRW-POWR",
+    "KRW-BTG",
+    "KRW-ICX",
+    "KRW-EOS",
+    "KRW-TRX",
+    "KRW-SC",
+    "KRW-ONT",
+    "KRW-ZIL",
+    "KRW-POLYX",
+    "KRW-ZRX",
+    "KRW-LOOM",
+    "KRW-BCH",
+    "KRW-BAT",
+    "KRW-IOST",
+    "KRW-RFR",
+    "KRW-CVC",
+    "KRW-IQ",
+    "KRW-IOTA",
+    "KRW-HIFI",
+    "KRW-ONG",
+    "KRW-GAS",
+    "KRW-UPP",
+    "KRW-ELF",
+    "KRW-KNC",
+    "KRW-BSV",
+    "KRW-THETA",
+    "KRW-QKC",
+    "KRW-BTT",
+    "KRW-MOC",
+    "KRW-ENJ",
+    "KRW-TFUEL",
+    "KRW-MANA",
+    "KRW-ANKR",
+    "KRW-AERGO",
+    "KRW-ATOM",
+    "KRW-TT",
+    "KRW-CRE",
+    "KRW-MBL",
+    "KRW-WAXP",
+    "KRW-HBAR",
+    "KRW-MED",
+    "KRW-MLK",
+    "KRW-STPT",
+    "KRW-ORBS",
+    "KRW-VET",
+    "KRW-CHZ",
+    "KRW-STMX",
+    "KRW-DKA",
+    "KRW-HIVE",
+    "KRW-KAVA",
+    "KRW-AHT",
+    "KRW-LINK",
+    "KRW-XTZ",
+    "KRW-BORA",
+    "KRW-JST",
+    "KRW-CRO",
+    "KRW-TON",
+    "KRW-SXP",
+    "KRW-HUNT",
+    "KRW-PLA",
+    "KRW-DOT",
+    "KRW-SRM",
+    "KRW-MVL",
+    "KRW-STRAX",
+    "KRW-AQT",
+    "KRW-GLM",
+    "KRW-SSX",
+    "KRW-META",
+    "KRW-FCT2",
+    "KRW-CBK",
+    "KRW-SAND",
+    "KRW-HUM",
+    "KRW-DOGE",
+    "KRW-STRK",
+    "KRW-PUNDIX",
+    "KRW-FLOW",
+    "KRW-DAWN",
+    "KRW-AXS",
+    "KRW-STX",
+    "KRW-XEC",
+    "KRW-SOL",
+    "KRW-MATIC",
+    "KRW-NU",
+    "KRW-AAVE",
+    "KRW-1INCH",
+    "KRW-ALGO",
+    "KRW-NEAR",
+    "KRW-AVAX",
+    "KRW-T",
+    "KRW-CELO",
+    "KRW-GMT",
+    "KRW-APT",
+    "KRW-SHIB",
+    "KRW-MASK",
+];
+
+
+/***/ }),
+/* 16 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.convertDatetime = void 0;
+const convertDatetime = (datetime) => {
+    const year = datetime.getFullYear();
+    const month = datetime.getMonth();
+    const date = datetime.getDate();
+    const hour = datetime.getHours();
+    return {
+        year,
+        month,
+        date,
+        hour,
+    };
+};
+exports.convertDatetime = convertDatetime;
+
+
+/***/ }),
 /* 17 */
 /***/ ((module) => {
 
@@ -1415,13 +1387,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __asyncValues = (this && this.__asyncValues) || function (o) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator], i;
-    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
-};
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ScrapService = void 0;
@@ -1432,34 +1397,13 @@ let ScrapService = class ScrapService {
         this.minuteCandleService = minuteCandleService;
     }
     async onApplicationBootstrap() {
-        var _a, e_1, _b, _c;
         const unitList = [1, 2, 4, 8, 12, 24];
-        const date = new Date();
-        const baseTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 1).toISOString();
-        const ISOBaseTime = new Date(baseTime);
-        await this.minuteCandleService.create(60, 3);
-        try {
-            for (var _d = true, unitList_1 = __asyncValues(unitList), unitList_1_1; unitList_1_1 = await unitList_1.next(), _a = unitList_1_1.done, !_a;) {
-                _c = unitList_1_1.value;
-                _d = false;
-                try {
-                    let unit = _c;
-                    await this.minuteCandleService.saveRankData(unit, ISOBaseTime);
-                }
-                finally {
-                    _d = true;
-                }
-            }
+        for (let i = 0; i < 2; i++) {
+            const date = new Date(2023, 2, 20, i + 11 + 9, -5).toISOString();
+            console.log(date);
+            await this.minuteCandleService.create(60, date);
         }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
-        finally {
-            try {
-                if (!_d && !_a && (_b = unitList_1.return)) await _b.call(unitList_1);
-            }
-            finally { if (e_1) throw e_1.error; }
-        }
-        await this.minuteCandleService.delete(ISOBaseTime);
-        console.log(`Done at ${ISOBaseTime}`);
+        console.log('done');
     }
 };
 ScrapService = __decorate([
