@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const makeInterval = (callback: Function) => {
   const date = new Date()
   const hour = 60 * 60 * 1000

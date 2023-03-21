@@ -60,9 +60,9 @@ export class TradeRank {
   prevDayPriceDiffRateRank: number
 
   @Prop()
-  datetime: Date
+  datetime: string
 
   @Prop()
-  unit: 1 | 2 | 4 | 8 | 12 | 24
+  unit: number
 }
 export const TradeRankSchema = SchemaFactory.createForClass(TradeRank)
