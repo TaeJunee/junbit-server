@@ -5,6 +5,7 @@ import { MinuteCandleDocument } from '@lib/schemas/minuteCandle.schema'
 
 describe('MinuteCandleService', () => {
   let service: MinuteCandleService
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let model: Model<MinuteCandleDocument>
 
   beforeEach(async () => {
@@ -22,7 +23,7 @@ describe('MinuteCandleService', () => {
   })
 
   describe('create', () => {
-    it('should save 114 data', async () => {
+    it('should save 115 data', async () => {
       jest.spyOn(service, 'create')
     })
   })

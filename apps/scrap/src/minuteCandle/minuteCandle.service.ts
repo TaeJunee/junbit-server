@@ -9,8 +9,8 @@ import { TradeRank, TradeRankDocument } from '@lib/schemas/tradeRank.schema'
 import { Upbit } from '@lib/utils/upbit'
 import { sleep } from '@lib/utils/sleep'
 import { krwTokens } from '../infra/upbit/tokens'
-import { ResponseType, ObjType } from 'types'
-import { convertDatetime } from '@lib/utils/datetime'
+import { ObjType } from 'types'
+import { resolveDatetime } from '@lib/utils/datetime'
 import { cloneDeep } from 'lodash'
 import { CreateMinuteCandleDto } from './dtos/create-minute-candle.dto'
 @Injectable()
@@ -27,7 +27,7 @@ export class MinuteCandleService {
     let i = 1
     const array: CreateMinuteCandleDto[] = []
 
-    for await (let token of krwTokens) {
+    for await (const token of krwTokens) {
       const start = Date.now()
       const response = await this.upbit.getMinuteCandle(unit, token.market, to)
 
@@ -66,19 +66,18 @@ export class MinuteCandleService {
     }
   }
 
-  async delete(datetime: Date): Promise<void> {
+  async delete(datetime: string): Promise<void> {
     console.log('Deleteing MinuteCandles')
 
-    const { year, month, date, hour } = convertDatetime(datetime)
+    const { year, month, date, hour } = resolveDatetime(datetime)
     const baseTime = new Date(year, month, date - 25, hour).toISOString()
-    const ISOBaseTime = new Date(baseTime)
 
     await this.minuteCandleModel.deleteMany({
-      candle_date_time_utc: { $lt: ISOBaseTime },
+      candle_date_time_utc: { $lt: baseTime },
     })
 
     await this.tradeRankModel.deleteMany({
-      datetime: { $lt: ISOBaseTime },
+      datetime: { $lt: baseTime },
     })
 
     console.log('Done')
@@ -87,7 +86,7 @@ export class MinuteCandleService {
   async findByMarketAndDatetime(
     market: string,
     hours: HoursType,
-    datetime: Date,
+    datetime: string,
   ) {
     const result = await this.minuteCandleModel
       .find(
@@ -107,10 +106,10 @@ export class MinuteCandleService {
     return result
   }
 
-  async calculate(hours: HoursType, datetime: Date) {
-    let array: ObjType[] = []
+  async calculateSum(hours: HoursType, datetime: string) {
+    const array: ObjType[] = []
 
-    for await (let value of krwTokens) {
+    for await (const value of krwTokens) {
       const data = await this.findByMarketAndDatetime(
         value.market,
         hours,
@@ -121,7 +120,7 @@ export class MinuteCandleService {
         return
       }
 
-      let obj: ObjType = {
+      const obj: ObjType = {
         market: data[0].market,
         datetime: data[0].candle_date_time_utc,
       }
@@ -166,22 +165,19 @@ export class MinuteCandleService {
     return array
   }
 
-  async saveRankData(hours: HoursType, datetime: Date) {
+  async saveRankData(hours: HoursType, datetime: string) {
     console.log('SAVING RANK DATA UNIT::: ', hours, 'DATETIME::: ', datetime)
-    const { year, month, date, hour } = convertDatetime(datetime)
+    const { year, month, date, hour } = resolveDatetime(datetime)
     const newDatetime = new Date(year, month, date, hour).toISOString()
-    const ISONewDatetime = new Date(newDatetime)
     const prevTime = new Date(year, month, date, hour - hours).toISOString()
-    const ISOPrevTime = new Date(prevTime)
     const prevDay = new Date(year, month, date - 1, hour).toISOString()
-    const ISOPrevDay = new Date(prevDay)
 
-    const data: ObjType[] | null = await this.calculate(hours, ISONewDatetime)
+    const data: ObjType[] | null = await this.calculateSum(hours, newDatetime)
     if (!data) {
       return
     }
 
-    let array = []
+    const array = []
 
     const sortedDataByVolumeSum = cloneDeep(data).sort(
       (a, b) => b[`volumeSum${hours}H`] - a[`volumeSum${hours}H`],
@@ -199,7 +195,7 @@ export class MinuteCandleService {
       (a, b) => b[`priceDiffRate${hours}H`] - a[`priceDiffRate${hours}H`],
     )
 
-    for await (let item of data) {
+    for await (const item of data) {
       const exist = await this.tradeRankModel.findOne({
         market: item.market,
         datetime: item.datetime,
@@ -208,15 +204,15 @@ export class MinuteCandleService {
 
       if (exist) {
       } else {
-        let obj = {}
+        const obj = {}
         const prevData = await this.tradeRankModel.findOne({
           market: item.market,
-          datetime: ISOPrevTime,
+          datetime: prevTime,
           unit: hours,
         })
         const prevDayData = await this.tradeRankModel.findOne({
           market: item.market,
-          datetime: ISOPrevDay,
+          datetime: prevDay,
           unit: hours,
         })
 

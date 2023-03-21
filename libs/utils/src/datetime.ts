@@ -1,8 +1,9 @@
-export const convertDatetime = (datetime: Date) => {
-  const year = datetime.getFullYear()
-  const month = datetime.getMonth()
-  const date = datetime.getDate()
-  const hour = datetime.getHours()
+export const resolveDatetime = (datetime: string) => {
+  const baseTime = new Date(datetime)
+  const year = baseTime.getFullYear()
+  const month = baseTime.getMonth()
+  const date = baseTime.getDate()
+  const hour = baseTime.getHours()
 
   return {
     year,
