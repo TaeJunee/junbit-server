@@ -9,7 +9,7 @@ export class TradeVolumeRankController {
 
   @Get('trade-volume-rank')
   findRankByDatetime(
-    @Query('unit') hours: HoursType,
+    @Query('unit') hours: number,
     @Query('datetime') datetime: Date,
   ) {
     return this.tradeVolumeRankService.findRankByDatetime(hours, datetime)

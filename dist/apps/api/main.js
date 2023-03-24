@@ -482,7 +482,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c;
+var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TradeVolumeRankController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -500,7 +500,7 @@ __decorate([
     __param(0, (0, common_1.Query)('unit')),
     __param(1, (0, common_1.Query)('datetime')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof HoursType !== "undefined" && HoursType) === "function" ? _b : Object, typeof (_c = typeof Date !== "undefined" && Date) === "function" ? _c : Object]),
+    __metadata("design:paramtypes", [Number, typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object]),
     __metadata("design:returntype", void 0)
 ], TradeVolumeRankController.prototype, "findRankByDatetime", null);
 TradeVolumeRankController = __decorate([
