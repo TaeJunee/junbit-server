@@ -7,7 +7,7 @@ export class TradePriceRankController {
 
   @Get('trade-price-rank')
   findRankByDatetime(
-    @Query('unit') hours: HoursType,
+    @Query('unit') hours: number,
     @Query('datetime') datetime: Date,
   ) {
     return this.tradePriceRankService.findRankByDatetime(hours, datetime)
