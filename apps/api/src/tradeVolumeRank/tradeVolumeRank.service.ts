@@ -10,7 +10,7 @@ export class TradeVolumeRankService {
     private readonly tradeRankModel: Model<TradeRankDocument>,
   ) {}
 
-  async findRankByDatetime(hours: HoursType, datetime: Date) {
+  async findRankByDatetime(hours: number, datetime: Date) {
     const data = await this.tradeRankModel
       .find(
         { unit: hours, datetime },

@@ -140,7 +140,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c;
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ChartController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -150,10 +150,10 @@ let ChartController = class ChartController {
         this.chartService = chartService;
     }
     findTokenVolumeRankByDatetime(market, hours, datetime) {
-        return this.chartService.findTokenVolumeRankByDatetime(market, hours, datetime);
+        return this.chartService.findTokenVolumeRankByDatetime(market, +hours, datetime);
     }
     findTokenPriceRankByDatetime(market, hours, datetime) {
-        return this.chartService.findTokenPriceRankByDatetime(market, hours, datetime);
+        return this.chartService.findTokenPriceRankByDatetime(market, +hours, datetime);
     }
 };
 __decorate([
@@ -162,7 +162,7 @@ __decorate([
     __param(1, (0, common_1.Query)('unit')),
     __param(2, (0, common_1.Query)('datetime')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_b = typeof HoursType !== "undefined" && HoursType) === "function" ? _b : Object, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
 ], ChartController.prototype, "findTokenVolumeRankByDatetime", null);
 __decorate([
@@ -171,7 +171,7 @@ __decorate([
     __param(1, (0, common_1.Query)('unit')),
     __param(2, (0, common_1.Query)('datetime')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_c = typeof HoursType !== "undefined" && HoursType) === "function" ? _c : Object, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
 ], ChartController.prototype, "findTokenPriceRankByDatetime", null);
 ChartController = __decorate([
@@ -253,37 +253,17 @@ let ChartService = class ChartService {
         this.tradeRankModel = tradeRankModel;
     }
     async findTokenVolumeRankByDatetime(market, hours, datetime) {
-        const { year, month, date, hour } = (0, datetime_1.convertDatetime)(new Date(datetime));
-        let baseTime;
-        switch (hours) {
-            case 1:
-                baseTime = new Date(year, month, date - 1, hour);
-                break;
-            case 2:
-                baseTime = new Date(year, month, date - 2, hour);
-                break;
-            case 4:
-                baseTime = new Date(year, month, date - 4, hour);
-                break;
-            case 8:
-                baseTime = new Date(year, month, date - 8, hour);
-                break;
-            case 12:
-                baseTime = new Date(year, month, date - 12, hour);
-                break;
-            case 24:
-                baseTime = new Date(year, month, date - 24, hour);
-                break;
-            default:
-                baseTime = new Date(year, month, date - 1, hour);
-                break;
+        const dateArray = [];
+        const { year, month, date, hour } = (0, datetime_1.resolveDatetime)(datetime);
+        for (let i = 0; i < 24 * hours + 1; i += hours) {
+            const tempDate = new Date(year, month, date, hour - i).toISOString();
+            dateArray.push(tempDate);
         }
-        const ISOBaseTime = new Date(baseTime);
         const data = await this.tradeRankModel
             .find({
             market,
             unit: hours,
-            datetime: { $lte: datetime, $gte: ISOBaseTime },
+            datetime: { $in: dateArray },
         }, {
             _id: 0,
             unit: 1,
@@ -296,47 +276,20 @@ let ChartService = class ChartService {
             .sort({ datetime: -1 })
             .limit(24)
             .exec();
-        data.sort((a, b) => {
-            if (a.datetime > b.datetime)
-                return 1;
-            if (a.datetime < b.datetime)
-                return -1;
-            return 0;
-        });
         return { payload: data };
     }
     async findTokenPriceRankByDatetime(market, hours, datetime) {
-        const { year, month, date, hour } = (0, datetime_1.convertDatetime)(new Date(datetime));
-        let baseTime;
-        switch (hours) {
-            case 1:
-                baseTime = new Date(year, month, date - 1, hour);
-                break;
-            case 2:
-                baseTime = new Date(year, month, date - 2, hour);
-                break;
-            case 4:
-                baseTime = new Date(year, month, date - 4, hour);
-                break;
-            case 8:
-                baseTime = new Date(year, month, date - 8, hour);
-                break;
-            case 12:
-                baseTime = new Date(year, month, date - 12, hour);
-                break;
-            case 24:
-                baseTime = new Date(year, month, date - 24, hour);
-                break;
-            default:
-                baseTime = new Date(year, month, date - 1, hour);
-                break;
+        const dateArray = [];
+        const { year, month, date, hour } = (0, datetime_1.resolveDatetime)(datetime);
+        for (let i = 0; i < 24 * hours + 1; i += hours) {
+            const tempDate = new Date(year, month, date, hour - i).toISOString();
+            dateArray.push(tempDate);
         }
-        const ISOBaseTime = new Date(baseTime);
         const data = await this.tradeRankModel
             .find({
             market,
             unit: hours,
-            datetime: { $lte: datetime, $gte: ISOBaseTime },
+            datetime: { $in: dateArray },
         }, {
             _id: 0,
             unit: 1,
@@ -350,13 +303,6 @@ let ChartService = class ChartService {
             .sort({ datetime: -1 })
             .limit(24)
             .exec();
-        data.sort((a, b) => {
-            if (a.datetime > b.datetime)
-                return 1;
-            if (a.datetime < b.datetime)
-                return -1;
-            return 0;
-        });
         return { payload: data };
     }
 };
@@ -389,7 +335,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c;
+var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TradePriceRankController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -407,7 +353,7 @@ __decorate([
     __param(0, (0, common_1.Query)('unit')),
     __param(1, (0, common_1.Query)('datetime')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof HoursType !== "undefined" && HoursType) === "function" ? _b : Object, typeof (_c = typeof Date !== "undefined" && Date) === "function" ? _c : Object]),
+    __metadata("design:paramtypes", [Number, typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object]),
     __metadata("design:returntype", void 0)
 ], TradePriceRankController.prototype, "findRankByDatetime", null);
 TradePriceRankController = __decorate([
@@ -536,7 +482,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c;
+var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TradeVolumeRankController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -554,7 +500,7 @@ __decorate([
     __param(0, (0, common_1.Query)('unit')),
     __param(1, (0, common_1.Query)('datetime')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof HoursType !== "undefined" && HoursType) === "function" ? _b : Object, typeof (_c = typeof Date !== "undefined" && Date) === "function" ? _c : Object]),
+    __metadata("design:paramtypes", [Number, typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object]),
     __metadata("design:returntype", void 0)
 ], TradeVolumeRankController.prototype, "findRankByDatetime", null);
 TradeVolumeRankController = __decorate([
@@ -722,7 +668,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TradeRankSchema = exports.TradeRank = void 0;
 const mongoose_1 = __webpack_require__(/*! @nestjs/mongoose */ "@nestjs/mongoose");
@@ -802,7 +747,7 @@ __decorate([
 ], TradeRank.prototype, "prevDayPriceDiffRateRank", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
-    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+    __metadata("design:type", String)
 ], TradeRank.prototype, "datetime", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
@@ -825,12 +770,13 @@ exports.TradeRankSchema = mongoose_1.SchemaFactory.createForClass(TradeRank);
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.convertDatetime = void 0;
-const convertDatetime = (datetime) => {
-    const year = datetime.getFullYear();
-    const month = datetime.getMonth();
-    const date = datetime.getDate();
-    const hour = datetime.getHours();
+exports.resolveDatetime = void 0;
+const resolveDatetime = (datetime) => {
+    const baseTime = new Date(datetime);
+    const year = baseTime.getFullYear();
+    const month = baseTime.getMonth();
+    const date = baseTime.getDate();
+    const hour = baseTime.getHours();
     return {
         year,
         month,
@@ -838,7 +784,7 @@ const convertDatetime = (datetime) => {
         hour,
     };
 };
-exports.convertDatetime = convertDatetime;
+exports.resolveDatetime = resolveDatetime;
 
 
 /***/ }),

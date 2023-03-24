@@ -8,12 +8,12 @@ export class ChartController {
   @Get('chart/volume')
   findTokenVolumeRankByDatetime(
     @Query('market') market: string,
-    @Query('unit') hours: HoursType,
+    @Query('unit') hours: string,
     @Query('datetime') datetime: string,
   ) {
     return this.chartService.findTokenVolumeRankByDatetime(
       market,
-      hours,
+      +hours,
       datetime,
     )
   }
@@ -21,12 +21,12 @@ export class ChartController {
   @Get('chart/price')
   findTokenPriceRankByDatetime(
     @Query('market') market: string,
-    @Query('unit') hours: HoursType,
+    @Query('unit') hours: string,
     @Query('datetime') datetime: string,
   ) {
     return this.chartService.findTokenPriceRankByDatetime(
       market,
-      hours,
+      +hours,
       datetime,
     )
   }
