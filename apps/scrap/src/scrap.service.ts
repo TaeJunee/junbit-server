@@ -27,7 +27,26 @@ export class ScrapService implements OnApplicationBootstrap {
       for await (const unit of unitList) {
         await this.minuteCandleService.saveRankData(unit, baseTime2)
       }
+      await this.minuteCandleService.delete(baseTime2)
       console.log(`Done at ${baseTime}`)
     })
+    // const date = new Date()
+    // const baseTime = new Date(
+    //   date.getFullYear(),
+    //   date.getMonth(),
+    //   date.getDate(),
+    //   date.getHours(),
+    //   -5,
+    // ).toISOString()
+    // const baseTime2 = new Date(
+    //   date.getFullYear(),
+    //   date.getMonth(),
+    //   date.getDate(),
+    //   date.getHours() - 1,
+    // ).toISOString()
+    // await this.minuteCandleService.create(60, baseTime)
+    // for await (const unit of unitList) {
+    //   await this.minuteCandleService.saveRankData(unit, baseTime2)
+    // }
   }
 }

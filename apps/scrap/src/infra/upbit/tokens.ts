@@ -515,11 +515,6 @@ export const krwTokens = [
     english_name: 'Polygon',
   },
   {
-    market: 'KRW-NU',
-    korean_name: '누사이퍼',
-    english_name: 'Nucypher',
-  },
-  {
     market: 'KRW-AAVE',
     korean_name: '에이브',
     english_name: 'Aave',
@@ -573,6 +568,11 @@ export const krwTokens = [
     market: 'KRW-MASK',
     korean_name: '마스크네트워크',
     english_name: 'Mask Network',
+  },
+  {
+    market: 'KRW-ARB',
+    korean_name: '아비트럼',
+    english_name: 'Arbitrum',
   },
 ]
 
@@ -680,7 +680,6 @@ export const markets = [
   'KRW-XEC',
   'KRW-SOL',
   'KRW-MATIC',
-  'KRW-NU',
   'KRW-AAVE',
   'KRW-1INCH',
   'KRW-ALGO',
@@ -692,4 +691,5 @@ export const markets = [
   'KRW-APT',
   'KRW-SHIB',
   'KRW-MASK',
+  'KRW-ARB',
 ]

@@ -51,10 +51,10 @@ export class MinuteCandleService {
 
       const now = Date.now()
       if (i % 10 === 0 && now - start < 1000) {
-        await sleep(1100 - (now - start))
+        await sleep(1200 - (now - start))
       }
       if (i === 115 && now - start < 1000) {
-        await sleep(1100 - (now - start))
+        await sleep(1200 - (now - start))
       }
       i++
     }
