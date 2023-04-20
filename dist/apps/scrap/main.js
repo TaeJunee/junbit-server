@@ -210,10 +210,10 @@ let MinuteCandleService = class MinuteCandleService {
                     array.push(obj);
                     const now = Date.now();
                     if (i % 10 === 0 && now - start < 1000) {
-                        await (0, sleep_1.sleep)(1100 - (now - start));
+                        await (0, sleep_1.sleep)(1200 - (now - start));
                     }
                     if (i === 115 && now - start < 1000) {
-                        await (0, sleep_1.sleep)(1100 - (now - start));
+                        await (0, sleep_1.sleep)(1200 - (now - start));
                     }
                     i++;
                 }
@@ -1163,11 +1163,6 @@ exports.krwTokens = [
         english_name: 'Polygon',
     },
     {
-        market: 'KRW-NU',
-        korean_name: '누사이퍼',
-        english_name: 'Nucypher',
-    },
-    {
         market: 'KRW-AAVE',
         korean_name: '에이브',
         english_name: 'Aave',
@@ -1221,6 +1216,11 @@ exports.krwTokens = [
         market: 'KRW-MASK',
         korean_name: '마스크네트워크',
         english_name: 'Mask Network',
+    },
+    {
+        market: 'KRW-ARB',
+        korean_name: '아비트럼',
+        english_name: 'Arbitrum',
     },
 ];
 exports.markets = [
@@ -1327,7 +1327,6 @@ exports.markets = [
     'KRW-XEC',
     'KRW-SOL',
     'KRW-MATIC',
-    'KRW-NU',
     'KRW-AAVE',
     'KRW-1INCH',
     'KRW-ALGO',
@@ -1339,6 +1338,7 @@ exports.markets = [
     'KRW-APT',
     'KRW-SHIB',
     'KRW-MASK',
+    'KRW-ARB',
 ];
 
 
@@ -1404,30 +1404,30 @@ let ScrapService = class ScrapService {
     async onApplicationBootstrap() {
         var _a, e_1, _b, _c;
         const unitList = [1, 2, 4, 8, 12, 24];
-        for (let i = 0; i < 7; i++) {
-            const date = new Date(2023, 2, 22, 10 + i + 9).toISOString();
-            try {
-                for (var _d = true, unitList_1 = (e_1 = void 0, __asyncValues(unitList)), unitList_1_1; unitList_1_1 = await unitList_1.next(), _a = unitList_1_1.done, !_a;) {
-                    _c = unitList_1_1.value;
-                    _d = false;
-                    try {
-                        const unit = _c;
-                        await this.minuteCandleService.saveRankData(unit, date);
-                    }
-                    finally {
-                        _d = true;
-                    }
-                }
-            }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
+        const date = new Date();
+        const baseTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), -5).toISOString();
+        const baseTime2 = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 1).toISOString();
+        await this.minuteCandleService.create(60, baseTime);
+        try {
+            for (var _d = true, unitList_1 = __asyncValues(unitList), unitList_1_1; unitList_1_1 = await unitList_1.next(), _a = unitList_1_1.done, !_a;) {
+                _c = unitList_1_1.value;
+                _d = false;
                 try {
-                    if (!_d && !_a && (_b = unitList_1.return)) await _b.call(unitList_1);
+                    const unit = _c;
+                    await this.minuteCandleService.saveRankData(unit, baseTime2);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally {
+                    _d = true;
+                }
             }
         }
-        console.log(`Done ㅋㅋ`);
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (!_d && !_a && (_b = unitList_1.return)) await _b.call(unitList_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
     }
 };
 ScrapService = __decorate([
