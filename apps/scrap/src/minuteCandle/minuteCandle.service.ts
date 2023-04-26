@@ -29,34 +29,40 @@ export class MinuteCandleService {
 
     for await (const token of krwTokens) {
       const start = Date.now()
-      const response = await this.upbit.getMinuteCandle(unit, token.market, to)
+      try {
+        const response = await this.upbit.getMinuteCandle(
+          unit,
+          token.market,
+          to,
+        )
+        const exist = await this.minuteCandleModel.findOne({
+          timestamp: response[0].timestamp,
+        })
+        if (exist) {
+          return
+        }
+        const obj = {} as CreateMinuteCandleDto
+        const res = response[0]
+        obj['market'] = res.market
+        obj['candle_date_time_utc'] = `${res.candle_date_time_utc}.000Z`
+        obj['timestamp'] = res.timestamp
+        obj['candle_acc_trade_price'] = res.candle_acc_trade_price
+        obj['candle_acc_trade_volume'] = res.candle_acc_trade_volume
+        obj['unit'] = res.unit
 
-      const exist = await this.minuteCandleModel.findOne({
-        timestamp: response[0].timestamp,
-      })
-      if (exist) {
-        return
+        array.push(obj)
+      } catch {
+        continue
+      } finally {
+        const now = Date.now()
+        if (i % 10 === 0 && now - start < 1000) {
+          await sleep(1200 - (now - start))
+        }
+        if (i === 115 && now - start < 1000) {
+          await sleep(1200 - (now - start))
+        }
+        i++
       }
-
-      const obj = {} as CreateMinuteCandleDto
-      const res = response[0]
-      obj['market'] = res.market
-      obj['candle_date_time_utc'] = `${res.candle_date_time_utc}.000Z`
-      obj['timestamp'] = res.timestamp
-      obj['candle_acc_trade_price'] = res.candle_acc_trade_price
-      obj['candle_acc_trade_volume'] = res.candle_acc_trade_volume
-      obj['unit'] = res.unit
-
-      array.push(obj)
-
-      const now = Date.now()
-      if (i % 10 === 0 && now - start < 1000) {
-        await sleep(1200 - (now - start))
-      }
-      if (i === 115 && now - start < 1000) {
-        await sleep(1200 - (now - start))
-      }
-      i++
     }
 
     try {
