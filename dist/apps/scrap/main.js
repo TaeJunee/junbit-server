@@ -192,6 +192,7 @@ let MinuteCandleService = class MinuteCandleService {
                 try {
                     const token = _c;
                     const start = Date.now();
+                    console.log(token.korean_name);
                     const response = await this.upbit.getMinuteCandle(unit, token.market, to);
                     const exist = await this.minuteCandleModel.findOne({
                         timestamp: response[0].timestamp,
@@ -1404,29 +1405,31 @@ let ScrapService = class ScrapService {
     async onApplicationBootstrap() {
         var _a, e_1, _b, _c;
         const unitList = [1, 2, 4, 8, 12, 24];
-        const date = new Date();
-        const baseTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), -5).toISOString();
-        const baseTime2 = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 1).toISOString();
-        await this.minuteCandleService.create(60, baseTime);
-        try {
-            for (var _d = true, unitList_1 = __asyncValues(unitList), unitList_1_1; unitList_1_1 = await unitList_1.next(), _a = unitList_1_1.done, !_a;) {
-                _c = unitList_1_1.value;
-                _d = false;
-                try {
-                    const unit = _c;
-                    await this.minuteCandleService.saveRankData(unit, baseTime2);
-                }
-                finally {
-                    _d = true;
-                }
-            }
-        }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
-        finally {
+        for (let i = 0; i < 24; i++) {
+            const date = new Date(2023, 3, 26, 0 + 9 + i);
+            const baseTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), -5).toISOString();
+            const baseTime2 = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 1).toISOString();
+            await this.minuteCandleService.create(60, baseTime);
             try {
-                if (!_d && !_a && (_b = unitList_1.return)) await _b.call(unitList_1);
+                for (var _d = true, unitList_1 = (e_1 = void 0, __asyncValues(unitList)), unitList_1_1; unitList_1_1 = await unitList_1.next(), _a = unitList_1_1.done, !_a;) {
+                    _c = unitList_1_1.value;
+                    _d = false;
+                    try {
+                        const unit = _c;
+                        await this.minuteCandleService.saveRankData(unit, baseTime2);
+                    }
+                    finally {
+                        _d = true;
+                    }
+                }
             }
-            finally { if (e_1) throw e_1.error; }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = unitList_1.return)) await _b.call(unitList_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
         }
     }
 };
