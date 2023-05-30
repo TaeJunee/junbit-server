@@ -20,6 +20,8 @@ declare module 'types' {
 
   interface ObjType {
     market: string
+    korean_name: string
+    english_name: string
     volumeSum1H?: number
     priceSum1H?: number
     volumeDiff1H?: number

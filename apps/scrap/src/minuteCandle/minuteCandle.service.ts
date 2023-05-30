@@ -47,6 +47,8 @@ export class MinuteCandleService {
         }
         const obj = {} as CreateMinuteCandleDto
         const res = response[0]
+        obj['korean_name'] = token.korean_name
+        obj['english_name'] = token.english_name
         obj['market'] = res.market
         obj['candle_date_time_utc'] = `${res.candle_date_time_utc}.000Z`
         obj['timestamp'] = res.timestamp
@@ -137,6 +139,8 @@ export class MinuteCandleService {
       const obj: ObjType = {
         market: data[0].market,
         datetime: data[0].candle_date_time_utc,
+        korean_name: data[0].korean_name,
+        english_name: data[0].english_name
       }
 
       const volumeSum = data
