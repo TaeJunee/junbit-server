@@ -3,6 +3,12 @@ declare type RankType = 'VOLUME' | 'PRICE'
 declare type PriceRankType = 'DIFF' | 'DIFF_RATE'
 
 declare module 'types' {
+  interface Tokens {
+    market: string
+    korean_name: string
+    english_name: string
+  }
+
   interface ResponseType {
     market: string
     candle_date_time_utc: string

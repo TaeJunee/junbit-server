@@ -8,11 +8,11 @@ import {
 import { TradeRank, TradeRankDocument } from '@lib/schemas/tradeRank.schema'
 import { Upbit } from '@lib/utils/upbit'
 import { sleep } from '@lib/utils/sleep'
-import { krwTokens } from '../infra/upbit/tokens'
-import { ObjType } from 'types'
+import { ObjType, Tokens } from 'types'
 import { resolveDatetime } from '@lib/utils/datetime'
 import { cloneDeep } from 'lodash'
 import { CreateMinuteCandleDto } from './dtos/create-minute-candle.dto'
+
 @Injectable()
 export class MinuteCandleService {
   constructor(
@@ -26,6 +26,10 @@ export class MinuteCandleService {
   async create(unit: number, to: string): Promise<void> {
     let i = 1
     const array: CreateMinuteCandleDto[] = []
+    const tokens: Tokens[] = await this.upbit.getAllTokens()
+    const krwTokens = tokens.filter(
+      (value) => 'KRW' === value.market.split('-')[0],
+    )
 
     for await (const token of krwTokens) {
       const start = Date.now()
@@ -114,6 +118,10 @@ export class MinuteCandleService {
 
   async calculateSum(hours: HoursType, datetime: string) {
     const array: ObjType[] = []
+    const tokens: Tokens[] = await this.upbit.getAllTokens()
+    const krwTokens = tokens.filter(
+      (value) => 'KRW' === value.market.split('-')[0],
+    )
 
     for await (const value of krwTokens) {
       const data = await this.findByMarketAndDatetime(

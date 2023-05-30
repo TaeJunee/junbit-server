@@ -4,13 +4,13 @@ export class Upbit {
   BASE_URL = 'https://api.upbit.com/v1'
   options = { method: 'GET', headers: { accept: 'application/json' } }
 
-  // getAllMarkets(): any {
-  //   const response = fetch(
-  //     `${this.BASE_URL}/market/all?isDetails=false`,
-  //     this.options,
-  //   );
-  //   return response.then((res) => res.json());
-  // }
+  async getAllTokens(): Promise<any> {
+    const response = await axios.get(
+      `${this.BASE_URL}/market/all?isDetails=false`,
+      this.options,
+    )
+    return response.data
+  }
 
   async getMinuteCandle(
     unit: number,
