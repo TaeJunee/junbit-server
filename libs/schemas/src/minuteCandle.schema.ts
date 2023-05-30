@@ -9,6 +9,12 @@ export class MinuteCandle {
   market: string
 
   @Prop()
+  korean_name: string
+
+  @Prop()
+  english_name: string
+
+  @Prop()
   candle_date_time_utc: string
 
   @Prop()

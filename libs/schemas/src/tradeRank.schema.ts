@@ -9,6 +9,12 @@ export class TradeRank {
   market: string
 
   @Prop()
+  korean_name: string
+
+  @Prop()
+  english_name: string
+
+  @Prop()
   volumeSum: number
 
   @Prop()
