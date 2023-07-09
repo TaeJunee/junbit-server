@@ -140,7 +140,7 @@ export class MinuteCandleService {
         market: data[0].market,
         datetime: data[0].candle_date_time_utc,
         korean_name: data[0].korean_name,
-        english_name: data[0].english_name
+        english_name: data[0].english_name,
       }
 
       const volumeSum = data

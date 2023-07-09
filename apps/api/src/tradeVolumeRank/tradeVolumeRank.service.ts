@@ -19,6 +19,8 @@ export class TradeVolumeRankService {
           unit: 1,
           market: 1,
           datetime: 1,
+          korean_name: 1,
+          english_name: 1,
           volumeDiff: 1,
           volumeDiffRate: 1,
           volumeDiffRateRank: 1,

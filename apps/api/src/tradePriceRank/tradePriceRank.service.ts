@@ -19,6 +19,8 @@ export class TradePriceRankService {
           unit: 1,
           market: 1,
           datetime: 1,
+          korean_name: 1,
+          english_name: 1,
           priceDiff: 1,
           priceDiffRate: 1,
           priceDiffRank: 1,
