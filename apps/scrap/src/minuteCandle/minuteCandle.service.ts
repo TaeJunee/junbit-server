@@ -235,6 +235,8 @@ export class MinuteCandleService {
         })
 
         obj['market'] = item.market
+        obj['korean_name'] = item.korean_name
+        obj['english_name'] = item.english_name
         obj['volumeSum'] = item[`volumeSum${hours}H`]
         obj['priceSum'] = item[`priceSum${hours}H`]
         obj['volumeDiff'] = item[`volumeDiff${hours}H`]
